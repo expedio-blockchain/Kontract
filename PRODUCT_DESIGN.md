@@ -22,11 +22,7 @@ Kubernetes operator that simplifies deployment of blockchain resources with stra
 
 **Description**: The RPCProvider resource represents a managed Remote Procedure Call (RPC) provider, which facilitates interaction with the blockchain network.
 
-**Role**: Provides RPC services to other blockchain-related resources.
-
-Supports integration with third-party services (e.g., Infura, Alchemy).
-
-Securely manages API tokens using Kubernetes Secrets.
+**Role**: Provides RPC services to other blockchain-related resources. Supports integration with third-party services (e.g., Infura, Alchemy). Securely manages API tokens using Kubernetes Secrets.
 
 **Interaction**: Network resources reference RPCProvider to interact with blockchain networks. The operator uses the secretRef to retrieve the API token and append it to the RPC requests.
 
