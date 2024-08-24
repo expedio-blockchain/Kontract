@@ -22,40 +22,39 @@ Simplifies the deployment of blockchain resources with strait forward deployment
 
 ```mermaid
 graph LR
-    %% Define the style for better looking arrows and text
-    classDef default fill:#f9f,stroke:#333,stroke-width:2px,font-size:18px;
-    classDef lightYellow fill:#ffffcc,stroke:#333,stroke-width:2px,font-size:20px,color:#000;
-    classDef lightGreen fill:#ccffcc,stroke:#333,stroke-width:2px,font-size:20px,color:#000;
+    %% Define the style for subgraph and component boxes
+    classDef subgraphBox fill:#ffffcc,stroke:#333,stroke-width:2px,font-size:22px,color:#000;
+    classDef componentBox fill:#ccffcc,stroke:#333,stroke-width:2px,font-size:20px,color:#000;
 
     %% Grouping related resources in subgraphs with enhanced readability
-    subgraph Network_Resources
-        Network:::lightYellow --> RPCProvider:::lightYellow
-        Network --> BlockExplorer:::lightYellow
-        Wallet:::lightYellow --> Network
+    subgraph Network_Resources["Network Resources"]:::subgraphBox
+        Network:::componentBox --> RPCProvider:::componentBox
+        Network --> BlockExplorer:::componentBox
+        Wallet:::componentBox --> Network
     end
 
-    subgraph Contract_Resources
-        Contract:::lightGreen --> Network
+    subgraph Contract_Resources["Contract Resources"]:::subgraphBox
+        Contract:::componentBox --> Network
         Contract --> Wallet
-        Contract --> GasStrategy:::lightGreen
-        ContractProxy:::lightGreen --> Network
+        Contract --> GasStrategy:::componentBox
+        ContractProxy:::componentBox --> Network
         ContractProxy --> Wallet
         ContractProxy --> Contract
         ContractProxy --> GasStrategy
-        ProxyAdmin:::lightGreen --> Network
+        ProxyAdmin:::componentBox --> Network
         ProxyAdmin --> Wallet
         ProxyAdmin --> GasStrategy
     end
 
-    subgraph Action_Resources
-        Action:::lightYellow --> Contract
+    subgraph Action_Resources["Action Resources"]:::subgraphBox
+        Action:::componentBox --> Contract
         Action --> Network
         Action --> Wallet
         Action --> GasStrategy
     end
 
-    subgraph Event_Resources
-        EventHook:::lightGreen --> Action
+    subgraph Event_Resources["Event Resources"]:::subgraphBox
+        EventHook:::componentBox --> Action
         EventHook --> Contract
     end
 ```
