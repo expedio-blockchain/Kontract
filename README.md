@@ -82,6 +82,7 @@ classDef mainBox fill:#e0f7fa,stroke:#006064,stroke-width:3px,font-size:24px,col
             ContractProxy:::componentBox --> Network
             ContractProxy --> Wallet
             ContractProxy --> Contract
+            ContractProxy --> ProxyAdmin
             ContractProxy --> GasStrategy
             ProxyAdmin:::componentBox --> Network
             ProxyAdmin --> Wallet
@@ -296,6 +297,10 @@ spec:
   walletRef: my-wallet
   gasStrategyRef: high-priority-gas
   adminAddress: 0x...
+status:
+  contractProxyRefs:
+    - name: my-upgradeable-proxy-1
+    - name: my-upgradeable-proxy-2
 ```
 
 ### Action
