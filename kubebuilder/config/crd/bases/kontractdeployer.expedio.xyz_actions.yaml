@@ -1,0 +1,115 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.16.1
+  name: actions.kontractdeployer.expedio.xyz
+spec:
+  group: kontractdeployer.expedio.xyz
+  names:
+    kind: Action
+    listKind: ActionList
+    plural: actions
+    singular: action
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: Action is the Schema for the actions API
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: ActionSpec defines the desired state of Action
+            properties:
+              actionType:
+                description: ActionType defines the type of action (e.g., invoke,
+                  query, upgrade, test)
+                type: string
+              contractRef:
+                description: ContractRef references the Contract resource for the
+                  action
+                type: string
+              functionName:
+                description: FunctionName is the name of the contract function to
+                  execute (for invoke or test actions)
+                type: string
+              gasStrategyRef:
+                description: GasStrategyRef references the GasStrategy resource for
+                  gas price management
+                type: string
+              networkRef:
+                description: NetworkRef references the Network resource where the
+                  action will be executed
+                type: string
+              parameters:
+                description: Parameters are the parameters to pass to the contract
+                  function
+                items:
+                  description: ActionParameter represents a parameter to be passed
+                    to the contract function
+                  properties:
+                    name:
+                      description: Name is the name of the parameter
+                      type: string
+                    value:
+                      description: Value is the value of the parameter
+                      type: string
+                  required:
+                  - name
+                  - value
+                  type: object
+                type: array
+              schedule:
+                description: Schedule is an optional cron schedule for recurring actions
+                type: string
+              walletRef:
+                description: WalletRef references the Wallet resource used for the
+                  action
+                type: string
+            required:
+            - actionType
+            - contractRef
+            - gasStrategyRef
+            - networkRef
+            - walletRef
+            type: object
+          status:
+            description: ActionStatus defines the observed state of Action
+            properties:
+              lastExecution:
+                description: LastExecution is the timestamp of the last execution
+                  of the action
+                format: date-time
+                type: string
+              result:
+                description: Result is the result of the last action execution (e.g.,
+                  Success, Failure)
+                type: string
+              transactionHash:
+                description: TransactionHash is the transaction hash of the last action
+                  execution (if applicable)
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

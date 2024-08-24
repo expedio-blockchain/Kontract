@@ -1,11 +1,59 @@
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  labels:
-    app.kubernetes.io/name: kubebuilder
-    app.kubernetes.io/managed-by: kustomize
   name: manager-role
 rules:
-- apiGroups: [""]
-  resources: ["pods"]
-  verbs: ["get", "list", "watch"]
+- apiGroups:
+  - kontractdeployer.expedio.xyz
+  resources:
+  - actions
+  - blockexplorers
+  - contractproxies
+  - contracts
+  - eventhooks
+  - gasstrategies
+  - networks
+  - proxyadmins
+  - rpcproviders
+  - wallets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - kontractdeployer.expedio.xyz
+  resources:
+  - actions/finalizers
+  - blockexplorers/finalizers
+  - contractproxies/finalizers
+  - contracts/finalizers
+  - eventhooks/finalizers
+  - gasstrategies/finalizers
+  - networks/finalizers
+  - proxyadmins/finalizers
+  - rpcproviders/finalizers
+  - wallets/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - kontractdeployer.expedio.xyz
+  resources:
+  - actions/status
+  - blockexplorers/status
+  - contractproxies/status
+  - contracts/status
+  - eventhooks/status
+  - gasstrategies/status
+  - networks/status
+  - proxyadmins/status
+  - rpcproviders/status
+  - wallets/status
+  verbs:
+  - get
+  - patch
+  - update

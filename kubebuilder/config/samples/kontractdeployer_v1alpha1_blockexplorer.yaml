@@ -1,0 +1,9 @@
+apiVersion: kontractdeployer.expedio.xyz/v1alpha1
+kind: BlockExplorer
+metadata:
+  labels:
+    app.kubernetes.io/name: kubebuilder
+    app.kubernetes.io/managed-by: kustomize
+  name: blockexplorer-sample
+spec:
+  # TODO(user): Add fields here

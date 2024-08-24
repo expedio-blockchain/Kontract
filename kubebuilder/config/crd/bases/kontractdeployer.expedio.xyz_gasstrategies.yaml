@@ -1,0 +1,83 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.16.1
+  name: gasstrategies.kontractdeployer.expedio.xyz
+spec:
+  group: kontractdeployer.expedio.xyz
+  names:
+    kind: GasStrategy
+    listKind: GasStrategyList
+    plural: gasstrategies
+    singular: gasstrategy
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: GasStrategy is the Schema for the gasstrategies API
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: GasStrategySpec defines the desired state of GasStrategy
+            properties:
+              fallbackGasPrice:
+                description: FallbackGasPrice is the gas price to use if the oracle
+                  is unavailable
+                type: string
+              gasPriceOracle:
+                description: GasPriceOracle is the URL to the gas price oracle service
+                type: string
+              maxGasPrice:
+                description: MaxGasPrice is the maximum allowed gas price
+                type: string
+              minGasPrice:
+                description: MinGasPrice is the minimum allowed gas price
+                type: string
+              secretRef:
+                description: SecretRef references the Kubernetes Secret that contains
+                  the API token for the oracle
+                properties:
+                  name:
+                    description: name is unique within a namespace to reference a
+                      secret resource.
+                    type: string
+                  namespace:
+                    description: namespace defines the space within which the secret
+                      name must be unique.
+                    type: string
+                type: object
+                x-kubernetes-map-type: atomic
+              strategyType:
+                description: StrategyType specifies the type of gas strategy (e.g.,
+                  fixed, oracle, dynamic)
+                type: string
+            required:
+            - strategyType
+            type: object
+          status:
+            description: GasStrategyStatus defines the observed state of GasStrategy
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
