@@ -21,11 +21,18 @@ Simplifies the deployment of blockchain resources with strait forward deployment
 ## Kubernetes Resources
 
 ```mermaid
-graph TB
-    subgraph KontractDeployer Operator
+graph LR
+    %% Define the style for better looking arrows
+    classDef default fill:#f9f,stroke:#333,stroke-width:2px;
+
+    %% Grouping related resources in subgraphs
+    subgraph Network_Resources
         Network --> RPCProvider
         Network --> BlockExplorer
         Wallet --> Network
+    end
+
+    subgraph Contract_Resources
         Contract --> Network
         Contract --> Wallet
         Contract --> GasStrategy
@@ -36,13 +43,31 @@ graph TB
         ProxyAdmin --> Network
         ProxyAdmin --> Wallet
         ProxyAdmin --> GasStrategy
+    end
+
+    subgraph Action_Resources
         Action --> Contract
         Action --> Network
         Action --> Wallet
         Action --> GasStrategy
+    end
+
+    subgraph Event_Resources
         EventHook --> Action
         EventHook --> Contract
     end
+
+    %% Adding clickable links with descriptions
+    click RPCProvider href "https://example.com" "Managed RPC provider for blockchain interaction"
+    click BlockExplorer href "https://example.com" "Block explorer service for retrieving blockchain data"
+    click Network href "https://example.com" "Represents a specific blockchain network"
+    click Wallet href "https://example.com" "Manages cryptographic keys for transactions"
+    click Contract href "https://example.com" "Represents a smart contract for deployment"
+    click ContractProxy href "https://example.com" "Proxy contract for upgrading smart contracts"
+    click ProxyAdmin href "https://example.com" "Administers upgrades for proxy contracts"
+    click Action href "https://example.com" "Performs operations on blockchain resources"
+    click EventHook href "https://example.com" "Triggers actions based on blockchain events"
+    click GasStrategy href "https://example.com" "Defines gas price strategies for transactions"
 ```
 
 ### RPCProvider
