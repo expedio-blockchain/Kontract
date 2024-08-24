@@ -57,17 +57,17 @@ graph LR
         EventHook --> Contract
     end
 
-    %% Adding clickable links with descriptions
-    click RPCProvider href "https://example.com" "Managed RPC provider for blockchain interaction"
-    click BlockExplorer href "https://example.com" "Block explorer service for retrieving blockchain data"
-    click Network href "https://example.com" "Represents a specific blockchain network"
-    click Wallet href "https://example.com" "Manages cryptographic keys for transactions"
-    click Contract href "https://example.com" "Represents a smart contract for deployment"
-    click ContractProxy href "https://example.com" "Proxy contract for upgrading smart contracts"
-    click ProxyAdmin href "https://example.com" "Administers upgrades for proxy contracts"
-    click Action href "https://example.com" "Performs operations on blockchain resources"
-    click EventHook href "https://example.com" "Triggers actions based on blockchain events"
-    click GasStrategy href "https://example.com" "Defines gas price strategies for transactions"
+    %% Adding clickable links to internal markdown sections
+    click RPCProvider href "#rpcprovider" "Managed RPC provider for blockchain interaction"
+    click BlockExplorer href "#blockexplorer" "Block explorer service for retrieving blockchain data"
+    click Network href "#network" "Represents a specific blockchain network"
+    click Wallet href "#wallet" "Manages cryptographic keys for transactions"
+    click Contract href "#contract" "Represents a smart contract for deployment"
+    click ContractProxy href "#contractproxy" "Proxy contract for upgrading smart contracts"
+    click ProxyAdmin href "#proxyadmin" "Administers upgrades for proxy contracts"
+    click Action href "#action" "Performs operations on blockchain resources"
+    click EventHook href "#eventhook" "Triggers actions based on blockchain events"
+    click GasStrategy href "#gasstrategy" "Defines gas price strategies for transactions"
 ```
 
 ### RPCProvider
