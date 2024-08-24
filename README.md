@@ -23,17 +23,18 @@ Simplifies the deployment of blockchain resources with strait forward deployment
 ```mermaid
 graph LR
     %% Define the style for subgraph and component boxes
-    classDef subgraphBox fill:#ffffcc,stroke:#333,stroke-width:2px,font-size:22px,color:#000;
     classDef componentBox fill:#ccffcc,stroke:#333,stroke-width:2px,font-size:20px,color:#000;
 
     %% Grouping related resources in subgraphs with enhanced readability
-    subgraph Network_Resources["Network Resources"]:::subgraphBox
+    subgraph Network_Resources["Network Resources"]
+        style Network_Resources fill:#ffffcc,stroke:#333,stroke-width:2px;
         Network:::componentBox --> RPCProvider:::componentBox
         Network --> BlockExplorer:::componentBox
         Wallet:::componentBox --> Network
     end
 
-    subgraph Contract_Resources["Contract Resources"]:::subgraphBox
+    subgraph Contract_Resources["Contract Resources"]
+        style Contract_Resources fill:#ffffcc,stroke:#333,stroke-width:2px;
         Contract:::componentBox --> Network
         Contract --> Wallet
         Contract --> GasStrategy:::componentBox
@@ -46,14 +47,16 @@ graph LR
         ProxyAdmin --> GasStrategy
     end
 
-    subgraph Action_Resources["Action Resources"]:::subgraphBox
+    subgraph Action_Resources["Action Resources"]
+        style Action_Resources fill:#ffffcc,stroke:#333,stroke-width:2px;
         Action:::componentBox --> Contract
         Action --> Network
         Action --> Wallet
         Action --> GasStrategy
     end
 
-    subgraph Event_Resources["Event Resources"]:::subgraphBox
+    subgraph Event_Resources["Event Resources"]
+        style Event_Resources fill:#ffffcc,stroke:#333,stroke-width:2px;
         EventHook:::componentBox --> Action
         EventHook --> Contract
     end
