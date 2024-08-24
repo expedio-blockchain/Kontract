@@ -56,10 +56,9 @@ Simplifies the deployment of blockchain resources with strait forward deployment
 
 ## Kubernetes Resources
 
-```mermaid
-graph LR
-    %% Define the style for subgraph and component boxes
-    classDef componentBox fill:#ccffcc,stroke:#333,stroke-width:2px,font-size:20px,color:#000;
+```graph LR
+%% Define the style for subgraph and component boxes
+classDef componentBox fill:#ccffcc,stroke:#333,stroke-width:2px,font-size:20px,color:#000;
 
     %% Grouping related resources in subgraphs with enhanced readability
     subgraph Network_Resources["Network Resources"]
@@ -92,6 +91,19 @@ graph LR
         Action --> Wallet
         Action --> GasStrategy
     end
+
+    %% Adding links to resources
+    click RPCProvider "https://github.com/expedio-blockchain/KontractDeployer#rpcprovider" "Go to RPCProvider section"
+    click BlockExplorer "https://github.com/expedio-blockchain/KontractDeployer#blockexplorer" "Go to BlockExplorer section"
+    click Network "https://github.com/expedio-blockchain/KontractDeployer#network" "Go to Network section"
+    click Wallet "https://github.com/expedio-blockchain/KontractDeployer#wallet" "Go to Wallet section"
+    click Contract "https://github.com/expedio-blockchain/KontractDeployer#contract" "Go to Contract section"
+    click ContractProxy "https://github.com/expedio-blockchain/KontractDeployer#contractproxy" "Go to ContractProxy section"
+    click ProxyAdmin "https://github.com/expedio-blockchain/KontractDeployer#proxyadmin" "Go to ProxyAdmin section"
+    click Action "https://github.com/expedio-blockchain/KontractDeployer#action" "Go to Action section"
+    click EventHook "https://github.com/expedio-blockchain/KontractDeployer#eventhook" "Go to EventHook section"
+    click GasStrategy "https://github.com/expedio-blockchain/KontractDeployer#gasstrategy" "Go to GasStrategy section"
+
 ```
 
 ### RPCProvider
