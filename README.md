@@ -20,6 +20,28 @@ Simplifies the deployment of blockchain resources with strait forward deployment
 
 ## Kubernetes Resources
 
+```mermaid
+graph TB
+    subgraph KontractDeployer Operator
+        RPCProvider --> Network
+        BlockExplorer --> Network
+        Network --> Contract
+        Network --> Wallet
+        Wallet --> Contract
+        Contract --> ContractProxy
+        ContractProxy --> ProxyAdmin
+        Action --> Contract
+        Action --> ContractProxy
+        Action --> ProxyAdmin
+        EventHook --> Action
+        EventHook --> Contract
+        GasStrategy --> Wallet
+        GasStrategy --> Contract
+        GasStrategy --> ContractProxy
+        GasStrategy --> ProxyAdmin
+    end
+```
+
 ### RPCProvider
 
 **Description**: The RPCProvider resource represents a managed Remote Procedure Call (RPC) provider, which facilitates interaction with the blockchain network.
