@@ -60,37 +60,43 @@ Simplifies the deployment of blockchain resources with strait forward deployment
 graph LR
 %% Define the style for subgraph and component boxes
 classDef componentBox fill:#ccffcc,stroke:#333,stroke-width:2px,font-size:20px,color:#000;
+classDef mainBox fill:#e0f7fa,stroke:#006064,stroke-width:3px,font-size:24px,color:#000,margin:20px;
 
-    %% Grouping related resources in subgraphs with enhanced readability
-    subgraph Network_Resources["Network Resources"]
-        style Network_Resources fill:#ffffcc,stroke:#333,stroke-width:2px;
-        Network:::componentBox --> RPCProvider:::componentBox
-        Network --> BlockExplorer:::componentBox
-        Wallet:::componentBox --> Network
-    end
+    %% Main encompassing subgraph for Kubernetes
+    subgraph Kubernetes["Kubernetes"]
+        style Kubernetes fill:#e0f7fa,stroke:#006064,stroke-width:3px;
 
-    subgraph Contract_Resources["Contract Resources"]
-        style Contract_Resources fill:#ffffcc,stroke:#333,stroke-width:2px;
-        Contract:::componentBox --> Network
-        Contract --> Wallet
-        Contract --> GasStrategy:::componentBox
-        ContractProxy:::componentBox --> Network
-        ContractProxy --> Wallet
-        ContractProxy --> Contract
-        ContractProxy --> GasStrategy
-        ProxyAdmin:::componentBox --> Network
-        ProxyAdmin --> Wallet
-        ProxyAdmin --> GasStrategy
-    end
+        %% Grouping related resources in subgraphs with enhanced readability
+        subgraph Network_Resources["Network Resources"]
+            style Network_Resources fill:#ffffcc,stroke:#333,stroke-width:2px;
+            Network:::componentBox --> RPCProvider:::componentBox
+            Network --> BlockExplorer:::componentBox
+            Wallet:::componentBox --> Network
+        end
 
-    subgraph Action_Event_Resources["Action Resources"]
-        style Action_Event_Resources fill:#ffffcc,stroke:#333,stroke-width:2px;
-        EventHook:::componentBox --> Action:::componentBox
-        EventHook --> Contract
-        Action --> Contract
-        Action --> Network
-        Action --> Wallet
-        Action --> GasStrategy
+        subgraph Contract_Resources["Contract Resources"]
+            style Contract_Resources fill:#ffffcc,stroke:#333,stroke-width:2px;
+            Contract:::componentBox --> Network
+            Contract --> Wallet
+            Contract --> GasStrategy:::componentBox
+            ContractProxy:::componentBox --> Network
+            ContractProxy --> Wallet
+            ContractProxy --> Contract
+            ContractProxy --> GasStrategy
+            ProxyAdmin:::componentBox --> Network
+            ProxyAdmin --> Wallet
+            ProxyAdmin --> GasStrategy
+        end
+
+        subgraph Action_Event_Resources["Action Resources"]
+            style Action_Event_Resources fill:#ffffcc,stroke:#333,stroke-width:2px;
+            EventHook:::componentBox --> Action:::componentBox
+            EventHook --> Contract
+            Action --> Contract
+            Action --> Network
+            Action --> Wallet
+            Action --> GasStrategy
+        end
     end
 
     %% Adding links to resources
@@ -104,6 +110,7 @@ classDef componentBox fill:#ccffcc,stroke:#333,stroke-width:2px,font-size:20px,c
     click Action "https://github.com/expedio-blockchain/KontractDeployer#action" "Go to Action section"
     click EventHook "https://github.com/expedio-blockchain/KontractDeployer#eventhook" "Go to EventHook section"
     click GasStrategy "https://github.com/expedio-blockchain/KontractDeployer#gasstrategy" "Go to GasStrategy section"
+
 ```
 
 ### RPCProvider
