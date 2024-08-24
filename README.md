@@ -6,6 +6,42 @@ Kubernetes operator for smart contracts deployment
 
 Simplifies the deployment of blockchain resources with strait forward deployment principals. It utilizes the integrations of Kubernetes with third-party tools and the powerful API to provide the best production ready deployment method.
 
+## Table of Contents
+
+1. [Overview](#overview)
+2. [Deployment Method](#deployment-method)
+   - [Bring Your Own Cluster (BYOC)](#bring-your-own-cluster-byoc)
+   - [Managed Kubernetes (SaaS)](#managed-kubernetes-saas)
+3. [Kubernetes Resources](#kubernetes-resources)
+   - [RPCProvider](#rpcprovider)
+   - [BlockExplorer](#blockexplorer)
+   - [Network](#network)
+   - [Wallet](#wallet)
+   - [Contract](#contract)
+   - [ContractProxy](#contractproxy)
+   - [ProxyAdmin](#proxyadmin)
+   - [Action](#action)
+   - [EventHook](#eventhook)
+   - [GasStrategy](#gasstrategy)
+4. [User Workflows](#user-workflows)
+   - [Initial Setup](#initial-setup)
+   - [Contract Deployment](#contract-deployment)
+   - [Contract Upgrade](#contract-upgrade)
+   - [Upgrade Order](#upgrade-order)
+   - [Fully CI/CD With Gitlab CI](#fully-cicd-with-gitlab-ci)
+   - [Import Wallet and Contract](#import-wallet-and-contract)
+5. [Controller](#controller)
+   - [Overview](#overview-1)
+   - [Key Responsibilities](#key-responsibilities)
+   - [Components](#components)
+     - [Reconciliation](#reconciliation)
+     - [Job Creation and Management](#job-creation-and-management)
+     - [Error Handling](#error-handling)
+     - [Status Management](#status-management)
+   - [Workflows](#workflows)
+     - [Contract Deployment](#contract-deployment-1)
+     - [Action Execution](#action-execution)
+
 ## Deployment Method
 
 ### Bring Your Own Cluster (BYOC)
