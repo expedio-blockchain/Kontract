@@ -23,22 +23,25 @@ Simplifies the deployment of blockchain resources with strait forward deployment
 ```mermaid
 graph TB
     subgraph KontractDeployer Operator
-        RPCProvider --> Network
-        BlockExplorer --> Network
-        Contract --> Network
+        Network --> RPCProvider
+        Network --> BlockExplorer
         Wallet --> Network
+        Contract --> Network
         Contract --> Wallet
+        Contract --> GasStrategy
+        ContractProxy --> Network
+        ContractProxy --> Wallet
         ContractProxy --> Contract
-        ContractProxy --> ProxyAdmin
+        ContractProxy --> GasStrategy
+        ProxyAdmin --> Network
+        ProxyAdmin --> Wallet
+        ProxyAdmin --> GasStrategy
         Action --> Contract
-        Action --> ContractProxy
-        Action --> ProxyAdmin
+        Action --> Network
+        Action --> Wallet
+        Action --> GasStrategy
         EventHook --> Action
         EventHook --> Contract
-        GasStrategy --> Wallet
-        GasStrategy --> Contract
-        GasStrategy --> ContractProxy
-        GasStrategy --> ProxyAdmin
     end
 ```
 
@@ -256,11 +259,6 @@ spec:
       value: "123"
     - name: param2
       value: "abc"
-
-  # Fields for 'upgrade' actions
-  proxyRef: my-upgradeable-proxy # Reference to the ContractProxy resource (for 'upgrade' actions)
-  newImplementationRef: my-new-contract # Reference to the new Contract resource (for 'upgrade' actions)
-  proxyAdminRef: my-proxy-admin # Reference to the ProxyAdmin resource (for 'upgrade' actions)
 
   # Optional scheduling
   schedule: "0 0 * * *" # Optional, cron schedule for recurring actions
