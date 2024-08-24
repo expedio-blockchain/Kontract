@@ -1,4 +1,6 @@
-# KontractDeployer - Kubernetes operator for smart contracts deployment
+# KontractDeployer
+
+Kubernetes operator for smart contracts deployment
 
 ## Overview
 
