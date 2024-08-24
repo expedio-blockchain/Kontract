@@ -56,7 +56,8 @@ Simplifies the deployment of blockchain resources with strait forward deployment
 
 ## Kubernetes Resources
 
-```graph LR
+```mermaid
+graph LR
 %% Define the style for subgraph and component boxes
 classDef componentBox fill:#ccffcc,stroke:#333,stroke-width:2px,font-size:20px,color:#000;
 
@@ -103,7 +104,6 @@ classDef componentBox fill:#ccffcc,stroke:#333,stroke-width:2px,font-size:20px,c
     click Action "https://github.com/expedio-blockchain/KontractDeployer#action" "Go to Action section"
     click EventHook "https://github.com/expedio-blockchain/KontractDeployer#eventhook" "Go to EventHook section"
     click GasStrategy "https://github.com/expedio-blockchain/KontractDeployer#gasstrategy" "Go to GasStrategy section"
-
 ```
 
 ### RPCProvider
