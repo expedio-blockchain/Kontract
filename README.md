@@ -22,38 +22,39 @@ Simplifies the deployment of blockchain resources with strait forward deployment
 
 ```mermaid
 graph LR
-    %% Define the style for better looking arrows
-    classDef default fill:#f9f,stroke:#333,stroke-width:2px;
+    %% Define the style for better looking arrows and text
+    classDef default fill:#f9f,stroke:#333,stroke-width:2px,font-size:16px;
+    classDef readable fill:#ffffff,stroke:#333,stroke-width:2px,font-size:18px,color:#000;
 
-    %% Grouping related resources in subgraphs
+    %% Grouping related resources in subgraphs with enhanced readability
     subgraph Network_Resources
-        Network["Network: Represents a specific blockchain network"] --> RPCProvider["RPCProvider: Managed RPC provider for blockchain interaction"]
-        Network --> BlockExplorer["BlockExplorer: Retrieves blockchain data"]
-        Wallet["Wallet: Manages cryptographic keys for transactions"] --> Network
+        Network["**Network**: Represents a specific blockchain network"]:::readable --> RPCProvider["**RPCProvider**: Managed RPC provider for blockchain interaction"]:::readable
+        Network --> BlockExplorer["**BlockExplorer**: Retrieves blockchain data"]:::readable
+        Wallet["**Wallet**: Manages cryptographic keys for transactions"]:::readable --> Network
     end
 
     subgraph Contract_Resources
-        Contract["Contract: Smart contract for deployment"] --> Network
+        Contract["**Contract**: Smart contract for deployment"]:::readable --> Network
         Contract --> Wallet
-        Contract --> GasStrategy["GasStrategy: Defines gas price strategies for transactions"]
-        ContractProxy["ContractProxy: Proxy for upgrading contracts"] --> Network
+        Contract --> GasStrategy["**GasStrategy**: Defines gas price strategies for transactions"]:::readable
+        ContractProxy["**ContractProxy**: Proxy for upgrading contracts"]:::readable --> Network
         ContractProxy --> Wallet
         ContractProxy --> Contract
         ContractProxy --> GasStrategy
-        ProxyAdmin["ProxyAdmin: Administers upgrades for proxies"] --> Network
+        ProxyAdmin["**ProxyAdmin**: Administers upgrades for proxies"]:::readable --> Network
         ProxyAdmin --> Wallet
         ProxyAdmin --> GasStrategy
     end
 
     subgraph Action_Resources
-        Action["Action: Performs operations on blockchain resources"] --> Contract
+        Action["**Action**: Performs operations on blockchain resources"]:::readable --> Contract
         Action --> Network
         Action --> Wallet
         Action --> GasStrategy
     end
 
     subgraph Event_Resources
-        EventHook["EventHook: Triggers actions based on blockchain events"] --> Action
+        EventHook["**EventHook**: Triggers actions based on blockchain events"]:::readable --> Action
         EventHook --> Contract
     end
 ```
