@@ -6,4 +6,8 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
   name: blockexplorer-sample
 spec:
-  # TODO(user): Add fields here
+  explorerName: Etherscan
+  endpoint: <https://api.etherscan.io/api>
+  secretRef:
+    name: etherscan-api-secret
+    key: api-token

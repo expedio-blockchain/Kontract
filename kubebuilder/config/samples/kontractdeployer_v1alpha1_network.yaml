@@ -6,4 +6,8 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
   name: network-sample
 spec:
-  # TODO(user): Add fields here
+  networkName: EthereumMainnet
+  chainID: 1
+  rpcProviderRef: my-rpc-provider
+  blockExplorerRef: etherscan-explorer
+  gasPriceOracle: <https://gas.oracle.example.com>

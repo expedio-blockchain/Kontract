@@ -6,4 +6,38 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
   name: contract-sample
 spec:
-  # TODO(user): Add fields here
+  import: false
+  contractName: MySmartContract
+  networkRef: ethereum-mainnet
+  walletRef: my-wallet
+  gasStrategyRef: high-priority-gas
+  contractAddress: 0x...
+  code: |
+    // SPDX-License-Identifier: MIT
+    pragma solidity ^0.8.0;
+    contract MySmartContract {
+      uint256 public value;
+      function setValue(uint256 newValue) public {
+        value = newValue;
+      }
+    }
+  test: |
+    // SPDX-License-Identifier: MIT
+    pragma solidity ^0.8.0;
+    import "ds-test/test.sol";
+    import "../MySmartContract.sol";
+    contract MySmartContractTest is DSTest {
+      MySmartContract myContract;
+      function setUp() public {
+        myContract = new MySmartContract();
+      }
+      function testInitialValue() public {
+        assertEq(myContract.value(), 0);
+      }
+    }
+status:
+  contractAddress: 0x...
+  deploymentTime: 2024-09-01T00:00:00Z
+  transactionHash: 0x...
+  test: passed
+  state: deployed

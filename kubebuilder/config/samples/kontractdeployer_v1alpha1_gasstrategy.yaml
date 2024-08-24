@@ -6,4 +6,11 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
   name: gasstrategy-sample
 spec:
-  # TODO(user): Add fields here
+  strategyType: dynamic # Types: fixed, oracle, dynamic
+  gasPriceOracle: https://gas.oracle.example.com # URL to a gas price oracle
+  fallbackGasPrice: "100 Gwei" # Fallback gas price if the oracle is unavailable
+  maxGasPrice: "300 Gwei" # Maximum allowed gas price
+  minGasPrice: "50 Gwei" # Minimum allowed gas price
+  secretRef: # (Optional) Reference to the Kubernetes Secret containing the API token for the oracle
+    name: gas-oracle-secret
+    key: api-token # Key in the Secret that stores the API token

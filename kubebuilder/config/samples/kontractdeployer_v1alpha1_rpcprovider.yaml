@@ -6,4 +6,9 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
   name: rpcprovider-sample
 spec:
-  # TODO(user): Add fields here
+  providerName: Infura
+  endpoint: <https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID>
+  secretRef:
+    name: infura-api-secret
+    key: api-token
+  timeout: 5s
