@@ -1,0 +1,9 @@
+apiVersion: kontractdeployer.expedio.xyz.expedio.xyz/v1alpha1
+kind: ProxyAdmin
+metadata:
+  labels:
+    app.kubernetes.io/name: kubebuilder
+    app.kubernetes.io/managed-by: kustomize
+  name: proxyadmin-sample
+spec:
+  # TODO(user): Add fields here
