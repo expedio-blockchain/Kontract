@@ -1,0 +1,13 @@
+apiVersion: kontractdeployer.expedio.xyz/v1alpha1
+kind: BlockExplorer
+metadata:
+  labels:
+    app.kubernetes.io/name: kubebuilder
+    app.kubernetes.io/managed-by: kustomize
+  name: blockexplorer-sample
+spec:
+  explorerName: Etherscan
+  endpoint: <https://api.etherscan.io/api>
+  secretRef:
+    name: etherscan-api-secret
+    key: api-token

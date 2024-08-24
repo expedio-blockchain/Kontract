@@ -1,0 +1,14 @@
+apiVersion: kontractdeployer.expedio.xyz/v1alpha1
+kind: Wallet
+metadata:
+  labels:
+    app.kubernetes.io/name: kubebuilder
+    app.kubernetes.io/managed-by: kustomize
+  name: wallet-sample
+spec:
+  walletType: EOA
+  secretRef: my-wallet-secret
+  networkRef: ethereum-mainnet
+  import: true
+status:
+  publicKey: 0x...

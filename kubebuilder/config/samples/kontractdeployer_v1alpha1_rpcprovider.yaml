@@ -1,0 +1,14 @@
+apiVersion: kontractdeployer.expedio.xyz/v1alpha1
+kind: RPCProvider
+metadata:
+  labels:
+    app.kubernetes.io/name: kubebuilder
+    app.kubernetes.io/managed-by: kustomize
+  name: rpcprovider-sample
+spec:
+  providerName: Infura
+  endpoint: <https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID>
+  secretRef:
+    name: infura-api-secret
+    key: api-token
+  timeout: 5s

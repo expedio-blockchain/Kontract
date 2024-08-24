@@ -1,0 +1,23 @@
+# permissions for end users to view actions.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: kubebuilder
+    app.kubernetes.io/managed-by: kustomize
+  name: action-viewer-role
+rules:
+- apiGroups:
+  - kontractdeployer.expedio.xyz
+  resources:
+  - actions
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - kontractdeployer.expedio.xyz
+  resources:
+  - actions/status
+  verbs:
+  - get
