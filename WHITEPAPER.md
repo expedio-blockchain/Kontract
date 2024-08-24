@@ -30,27 +30,19 @@ Securely manages API tokens using Kubernetes Secrets.
 
 **Interaction**: Network resources reference RPCProvider to interact with blockchain networks. The operator uses the secretRef to retrieve the API token and append it to the RPC requests.
 
+```yaml
 apiVersion: expedio.xyz/v1alpha1
-
 kind: RPCProvider
-
 metadata:
-
-name: my-rpc-provider
-
+  name: my-rpc-provider
 spec:
-
-providerName: Infura # Name of the RPC provider (e.g., Infura, Alchemy)
-
-endpoint: <https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID> # RPC endpoint URL
-
-secretRef: # Reference to the Kubernetes Secret containing the API token
-
-name: infura-api-secret # Name of the Secret resource
-
-key: api-token # Key in the Secret that stores the API token
-
-timeout: 5s
+  providerName: Infura
+  endpoint: <https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID>
+  secretRef:
+    name: infura-api-secret
+    key: api-token
+  timeout: 5s
+```
 
 ### _BlockExplorer_
 
@@ -60,25 +52,18 @@ timeout: 5s
 
 **Interactions**: The BlockExplorer resource acts as a centralized service for retrieving blockchain data. It is directly referenced by the Network resource, which in turn is referenced by other resources like Contract, Action, and EventHook.
 
+```yaml
 apiVersion: expedio.xyz/v1alpha1
-
 kind: BlockExplorer
-
 metadata:
-
-name: etherscan-explorer
-
+  name: etherscan-explorer
 spec:
-
-explorerName: Etherscan # Name of the block explorer (e.g., Etherscan, BlockCypher)
-
-endpoint: <https://api.etherscan.io/api> # API endpoint URL
-
-secretRef: # Reference to the Kubernetes Secret containing the API token
-
-name: etherscan-api-secret # Name of the Secret resource
-
-key: api-token # Key in the Secret that stores the API token
+  explorerName: Etherscan
+  endpoint: <https://api.etherscan.io/api>
+  secretRef:
+    name: etherscan-api-secret
+    key: api-token
+```
 
 ### Network
 
@@ -90,25 +75,18 @@ Ensures secure communication and interaction with the blockchain.
 
 **Interaction**: Referenced by Contract and Wallet resources to determine the network on which they operate.
 
+```yaml
 apiVersion: expedio.xyz/v1alpha1
-
 kind: Network
-
 metadata:
-
-name: ethereum-mainnet
-
+  name: ethereum-mainnet
 spec:
-
-networkName: EthereumMainnet # Name of the network
-
-chainID: 1 # Chain ID of the network
-
-rpcProviderRef: my-rpc-provider # Reference to the RPCProvider resource
-
-blockExplorerRef: etherscan-explorer # Reference to the BlockExplorer resource
-
-gasPriceOracle: <https://gas.oracle.example.com> # Optional, URL for gas price suggestions
+  networkName: EthereumMainnet
+  chainID: 1
+  rpcProviderRef: my-rpc-provider
+  blockExplorerRef: etherscan-explorer
+  gasPriceOracle: <https://gas.oracle.example.com>
+```
 
 ### Wallet
 
@@ -120,27 +98,19 @@ Can support multiple wallet types, including externally managed wallets.
 
 **Interaction**: Referenced by Contract for deploying and interacting with contracts on the blockchain.
 
+```yaml
 apiVersion: blockchain.io/v1alpha1
-
 kind: Wallet
-
 metadata:
-
-name: my-wallet
-
+  name: my-wallet
 spec:
-
-walletType: EOA # Type of the wallet (e.g., EOA, Hardware, MultiSig)
-
-secretRef: my-wallet-secret # Kubernetes Secret containing private key or mnemonic
-
-networkRef: ethereum-mainnet # Reference to the Network resource
-
-import: true # Feature flag for importing an existing wallet
-
+  walletType: EOA
+  secretRef: my-wallet-secret
+  networkRef: ethereum-mainnet
+  import: true
 status:
-
-publicKey: 0x... # The public key associated with the wallet
+  publicKey: 0x...
+```
 
 ### Contract
 
@@ -150,85 +120,48 @@ publicKey: 0x... # The public key associated with the wallet
 
 **Interaction**: Depends on Network and Wallet resources to determine where and how the contract is deployed. The ContractProxy resource references the Contract resource when a new implementation is deployed.
 
+```yaml
 apiVersion: expedio.xyz/v1alpha1
-
 kind: Contract
-
 metadata:
-
-name: my-smart-contract
-
+  name: my-smart-contract
 spec:
-
-import: false # Set to true if importing an existing contract instead of deploying a new one
-
-contractName: MySmartContract # Name of the contract
-
-networkRef: ethereum-mainnet # Reference to the Network resource
-
-walletRef: my-wallet # Reference to the Wallet resource
-
-gasStrategyRef: high-priority-gas # Reference to the GasStrategy resource
-
-contractAddress: 0x... # Address of the deployed contract (required if import is true)
-
-code: | # Smart contract code (ignored if import is true)
-
-// SPDX-License-Identifier: MIT
-
-pragma solidity ^0.8.0;
-
-contract MySmartContract {
-
-uint256 public value;
-
-function setValue(uint256 newValue) public {
-
-value = newValue;
-
-}
-
-}
-
-test: | # Sample test for the contract
-
-// SPDX-License-Identifier: MIT
-
-pragma solidity ^0.8.0;
-
-import "ds-test/test.sol";
-
-import "../MySmartContract.sol";
-
-contract MySmartContractTest is DSTest {
-
-MySmartContract myContract;
-
-function setUp() public {
-
-myContract = new MySmartContract();
-
-}
-
-function testInitialValue() public {
-
-assertEq(myContract.value(), 0);
-
-}
-
-}
-
+  import: false
+  contractName: MySmartContract
+  networkRef: ethereum-mainnet
+  walletRef: my-wallet
+  gasStrategyRef: high-priority-gas
+  contractAddress: 0x...
+  code: |
+    // SPDX-License-Identifier: MIT
+    pragma solidity ^0.8.0;
+    contract MySmartContract {
+      uint256 public value;
+      function setValue(uint256 newValue) public {
+        value = newValue;
+      }
+    }
+  test: |
+    // SPDX-License-Identifier: MIT
+    pragma solidity ^0.8.0;
+    import "ds-test/test.sol";
+    import "../MySmartContract.sol";
+    contract MySmartContractTest is DSTest {
+      MySmartContract myContract;
+      function setUp() public {
+        myContract = new MySmartContract();
+      }
+      function testInitialValue() public {
+        assertEq(myContract.value(), 0);
+      }
+    }
 status:
-
-contractAddress: 0x... # Address of the deployed contract (automatically populated if import is false)
-
-deploymentTime: 2024-09-01T00:00:00Z # Timestamp of deployment (ignored if import is true)
-
-transactionHash: 0x... # Transaction hash of the deployment (ignored if import is true)
-
-test: passed # The result of running the test (e.g., passed, failed)
-
-state: deployed
+  contractAddress: 0x...
+  deploymentTime: 2024-09-01T00:00:00Z
+  transactionHash: 0x...
+  test: passed
+  state: deployed
+```
 
 ### ContractProxy
 
@@ -238,31 +171,21 @@ state: deployed
 
 **Interaction**: The ContractProxy resource interacts with the ProxyAdmin to facilitate upgrades by changing the implementation contract reference.
 
+```yaml
 apiVersion: expedio.xyz/v1alpha1
-
 kind: ContractProxy
-
 metadata:
-
-name: my-upgradeable-proxy
-
+  name: my-upgradeable-proxy
 spec:
-
-proxyType: Transparent # Type of proxy (e.g., Transparent, UUPS)
-
-networkRef: ethereum-mainnet # Reference to the Network resource
-
-walletRef: my-wallet # Reference to the Wallet resource
-
-gasStrategyRef: high-priority-gas # Reference to the GasStrategy resource
-
-implementationRef: my-implementation-contract-v1 # Reference to the current implementation contract
-
-proxyAdminRef: my-proxy-admin # Reference to the ProxyAdmin contract
-
+  proxyType: Transparent
+  networkRef: ethereum-mainnet
+  walletRef: my-wallet
+  gasStrategyRef: high-priority-gas
+  implementationRef: my-implementation-contract-v1
+  proxyAdminRef: my-proxy-admin
 status:
-
-proxyAddress: 0x... # The deployed address of the proxy contract (populated after deployment)
+  proxyAddress: 0x...
+```
 
 ### ProxyAdmin
 
@@ -272,23 +195,17 @@ proxyAddress: 0x... # The deployed address of the proxy contract (populated afte
 
 **Interaction**: The ProxyAdmin resource interacts with ContractProxy resources to change their implementation reference during an upgrade. Action resources can execute upgrades by invoking functions on the ProxyAdmin contract.
 
+```yaml
 apiVersion: expedio.xyz/v1alpha1
-
 kind: ProxyAdmin
-
 metadata:
-
-name: my-proxy-admin
-
+  name: my-proxy-admin
 spec:
-
-networkRef: ethereum-mainnet # Reference to the Network resource
-
-walletRef: my-wallet # Reference to the Wallet resource
-
-gasStrategyRef: high-priority-gas # Reference to the GasStrategy resource
-
-adminAddress: 0x... # Address of the ProxyAdmin contract
+  networkRef: ethereum-mainnet
+  walletRef: my-wallet
+  gasStrategyRef: high-priority-gas
+  adminAddress: 0x...
+```
 
 ### Action
 
@@ -298,61 +215,41 @@ adminAddress: 0x... # Address of the ProxyAdmin contract
 
 **Interaction**: The Action resource is used to trigger operations on smart contracts or other blockchain resources. It interacts with the relevant resources and logs the outcome of each action. It can be scheduled for recurring actions or triggered manually.
 
+```yaml
 apiVersion: expedio.xyz/v1alpha1
-
 kind: Action
-
 metadata:
-
-name: perform-blockchain-action
-
+  name: perform-blockchain-action
 spec:
+  actionType: invoke # Type of action (invoke, query, upgrade, test)
 
-actionType: invoke # Type of action (invoke, query, upgrade, test)
+  # General fields applicable to all actions
+  contractRef: my-smart-contract # Reference to the Contract resource (for 'invoke', 'query', and 'test')
+  walletRef: my-wallet # Reference to the Wallet resource
+  networkRef: ethereum-mainnet # Reference to the Network resource
+  gasStrategyRef: high-priority-gas # Reference to the GasStrategy resource
 
-\# General fields applicable to all actions
+  # Fields for 'invoke' and 'test' actions
+  functionName: setParameter # Name of the contract function to execute (if actionType is 'invoke' or 'test')
+  parameters: # Parameters to pass to the function
+    - name: param1
+      value: "123"
+    - name: param2
+      value: "abc"
 
-contractRef: my-smart-contract # Reference to the Contract resource (for 'invoke', 'query', and 'test')
+  # Fields for 'upgrade' actions
+  proxyRef: my-upgradeable-proxy # Reference to the ContractProxy resource (for 'upgrade' actions)
+  newImplementationRef: my-new-contract # Reference to the new Contract resource (for 'upgrade' actions)
+  proxyAdminRef: my-proxy-admin # Reference to the ProxyAdmin resource (for 'upgrade' actions)
 
-walletRef: my-wallet # Reference to the Wallet resource
-
-networkRef: ethereum-mainnet # Reference to the Network resource
-
-gasStrategyRef: high-priority-gas # Reference to the GasStrategy resource
-
-\# Fields for 'invoke' and 'test' actions
-
-functionName: setParameter # Name of the contract function to execute (if actionType is 'invoke' or 'test')
-
-parameters: # Parameters to pass to the function
-
-\- name: param1
-
-value: "123"
-
-\- name: param2
-
-value: "abc"
-
-\# Fields for 'upgrade' actions
-
-proxyRef: my-upgradeable-proxy # Reference to the ContractProxy resource (for 'upgrade' actions)
-
-newImplementationRef: my-new-contract # Reference to the new Contract resource (for 'upgrade' actions)
-
-proxyAdminRef: my-proxy-admin # Reference to the ProxyAdmin resource (for 'upgrade' actions)
-
-\# Optional scheduling
-
-schedule: "0 0 \* \* \*" # Optional, cron schedule for recurring actions
+  # Optional scheduling
+  schedule: "0 0 * * *" # Optional, cron schedule for recurring actions
 
 status:
-
-lastExecution: 2024-09-01T00:00:00Z # Timestamp of the last execution
-
-transactionHash: 0x... # Transaction hash of the last action execution (if applicable)
-
-result: Success # Result of the last action execution (Success, Failure)
+  lastExecution: 2024-09-01T00:00:00Z # Timestamp of the last execution
+  transactionHash: 0x... # Transaction hash of the last action execution (if applicable)
+  result: Success # Result of the last action execution (Success, Failure)
+```
 
 ### EventHook
 
@@ -362,27 +259,19 @@ result: Success # Result of the last action execution (Success, Failure)
 
 **Interaction**: Watches for events on the blockchain and triggers corresponding Action resources when the conditions are met.
 
+```yaml
 apiVersion: expedio.xyz/v1alpha1
-
 kind: EventHook
-
 metadata:
-
-name: upgrade-trigger
-
+  name: upgrade-trigger
 spec:
-
-eventType: BlockMined # Event that triggers the hook (BlockMined, ContractEvent)
-
-contractRef: my-smart-contract # Reference to the Contract resource
-
-actionRef: test-contract-function # Reference to the Action resource to be triggered
-
-filter: # Optional, filter conditions for the event
-
-blockNumber: "123456"
-
-eventName: "Upgrade"
+  eventType: BlockMined # Event that triggers the hook (BlockMined, ContractEvent)
+  contractRef: my-smart-contract # Reference to the Contract resource
+  actionRef: test-contract-function # Reference to the Action resource to be triggered
+  filter: # Optional, filter conditions for the event
+    blockNumber: "123456"
+    eventName: "Upgrade"
+```
 
 ### GasStrategy
 
@@ -392,31 +281,21 @@ eventName: "Upgrade"
 
 **Integrations**: Integrates with gas price oracles to dynamically adjust gas prices according to current network conditions. Can be used with fixed gas prices for predictable and controlled costs. Supports upper and lower bounds to avoid excessive fees or transaction failures.
 
+```yaml
 apiVersion: expedio.xyz/v1alpha1
-
 kind: GasStrategy
-
 metadata:
-
-name: high-priority-gas
-
+  name: high-priority-gas
 spec:
-
-strategyType: dynamic # Types: fixed, oracle, dynamic
-
-gasPriceOracle: <https://gas.oracle.example.com> # URL to a gas price oracle
-
-fallbackGasPrice: "100 Gwei" # Fallback gas price if the oracle is unavailable
-
-maxGasPrice: "300 Gwei" # Maximum allowed gas price
-
-minGasPrice: "50 Gwei" # Minimum allowed gas price
-
-secretRef: # (Optional) Reference to the Kubernetes Secret containing the API token for the oracle
-
-name: gas-oracle-secret
-
-key: api-token # Key in the Secret that stores the API token
+  strategyType: dynamic # Types: fixed, oracle, dynamic
+  gasPriceOracle: https://gas.oracle.example.com # URL to a gas price oracle
+  fallbackGasPrice: "100 Gwei" # Fallback gas price if the oracle is unavailable
+  maxGasPrice: "300 Gwei" # Maximum allowed gas price
+  minGasPrice: "50 Gwei" # Minimum allowed gas price
+  secretRef: # (Optional) Reference to the Kubernetes Secret containing the API token for the oracle
+    name: gas-oracle-secret
+    key: api-token # Key in the Secret that stores the API token
+```
 
 ## User Workflows
 
