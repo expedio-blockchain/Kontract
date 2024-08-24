@@ -6,6 +6,42 @@ Kubernetes operator for smart contracts deployment
 
 Simplifies the deployment of blockchain resources with strait forward deployment principals. It utilizes the integrations of Kubernetes with third-party tools and the powerful API to provide the best production ready deployment method.
 
+## Table of Contents
+
+1. [Overview](#overview)
+2. [Deployment Method](#deployment-method)
+   - [Bring Your Own Cluster (BYOC)](#bring-your-own-cluster-byoc)
+   - [Managed Kubernetes (SaaS)](#managed-kubernetes-saas)
+3. [Kubernetes Resources](#kubernetes-resources)
+   - [RPCProvider](#rpcprovider)
+   - [BlockExplorer](#blockexplorer)
+   - [Network](#network)
+   - [Wallet](#wallet)
+   - [Contract](#contract)
+   - [ContractProxy](#contractproxy)
+   - [ProxyAdmin](#proxyadmin)
+   - [Action](#action)
+   - [EventHook](#eventhook)
+   - [GasStrategy](#gasstrategy)
+4. [User Workflows](#user-workflows)
+   - [Initial Setup](#initial-setup)
+   - [Contract Deployment](#contract-deployment)
+   - [Contract Upgrade](#contract-upgrade)
+   - [Upgrade Order](#upgrade-order)
+   - [Fully CI/CD With Gitlab CI](#fully-cicd-with-gitlab-ci)
+   - [Import Wallet and Contract](#import-wallet-and-contract)
+5. [Controller](#controller)
+   - [Overview](#overview-1)
+   - [Key Responsibilities](#key-responsibilities)
+   - [Components](#components)
+     - [Reconciliation](#reconciliation)
+     - [Job Creation and Management](#job-creation-and-management)
+     - [Error Handling](#error-handling)
+     - [Status Management](#status-management)
+   - [Workflows](#workflows)
+     - [Contract Deployment](#contract-deployment-1)
+     - [Action Execution](#action-execution)
+
 ## Deployment Method
 
 ### Bring Your Own Cluster (BYOC)
@@ -19,6 +55,63 @@ Simplifies the deployment of blockchain resources with strait forward deployment
 - The user get access to the service via API
 
 ## Kubernetes Resources
+
+```mermaid
+graph LR
+%% Define the style for subgraph and component boxes
+classDef componentBox fill:#ccffcc,stroke:#333,stroke-width:2px,font-size:20px,color:#000;
+classDef mainBox fill:#e0f7fa,stroke:#006064,stroke-width:3px,font-size:24px,color:#000,margin:20px;
+
+    %% Main encompassing subgraph for Kubernetes
+    subgraph Kubernetes["Kubernetes"]
+        style Kubernetes fill:#e0f7fa,stroke:#006064,stroke-width:3px;
+
+        %% Grouping related resources in subgraphs with enhanced readability
+        subgraph Network_Resources["Network Resources"]
+            style Network_Resources fill:#ffffcc,stroke:#333,stroke-width:2px;
+            Network:::componentBox --> RPCProvider:::componentBox
+            Network --> BlockExplorer:::componentBox
+            Wallet:::componentBox --> Network
+        end
+
+        subgraph Contract_Resources["Contract Resources"]
+            style Contract_Resources fill:#ffffcc,stroke:#333,stroke-width:2px;
+            Contract:::componentBox --> Network
+            Contract --> Wallet
+            Contract --> GasStrategy:::componentBox
+            ContractProxy:::componentBox --> Network
+            ContractProxy --> Wallet
+            ContractProxy --> Contract
+            ContractProxy --> GasStrategy
+            ProxyAdmin:::componentBox --> Network
+            ProxyAdmin --> Wallet
+            ProxyAdmin --> GasStrategy
+        end
+
+        subgraph Action_Event_Resources["Action Resources"]
+            style Action_Event_Resources fill:#ffffcc,stroke:#333,stroke-width:2px;
+            EventHook:::componentBox --> Action:::componentBox
+            EventHook --> Contract
+            Action --> Contract
+            Action --> Network
+            Action --> Wallet
+            Action --> GasStrategy
+        end
+    end
+
+    %% Adding links to resources
+    click RPCProvider "https://github.com/expedio-blockchain/KontractDeployer#rpcprovider" "Go to RPCProvider section"
+    click BlockExplorer "https://github.com/expedio-blockchain/KontractDeployer#blockexplorer" "Go to BlockExplorer section"
+    click Network "https://github.com/expedio-blockchain/KontractDeployer#network" "Go to Network section"
+    click Wallet "https://github.com/expedio-blockchain/KontractDeployer#wallet" "Go to Wallet section"
+    click Contract "https://github.com/expedio-blockchain/KontractDeployer#contract" "Go to Contract section"
+    click ContractProxy "https://github.com/expedio-blockchain/KontractDeployer#contractproxy" "Go to ContractProxy section"
+    click ProxyAdmin "https://github.com/expedio-blockchain/KontractDeployer#proxyadmin" "Go to ProxyAdmin section"
+    click Action "https://github.com/expedio-blockchain/KontractDeployer#action" "Go to Action section"
+    click EventHook "https://github.com/expedio-blockchain/KontractDeployer#eventhook" "Go to EventHook section"
+    click GasStrategy "https://github.com/expedio-blockchain/KontractDeployer#gasstrategy" "Go to GasStrategy section"
+
+```
 
 ### RPCProvider
 
@@ -234,11 +327,6 @@ spec:
       value: "123"
     - name: param2
       value: "abc"
-
-  # Fields for 'upgrade' actions
-  proxyRef: my-upgradeable-proxy # Reference to the ContractProxy resource (for 'upgrade' actions)
-  newImplementationRef: my-new-contract # Reference to the new Contract resource (for 'upgrade' actions)
-  proxyAdminRef: my-proxy-admin # Reference to the ProxyAdmin resource (for 'upgrade' actions)
 
   # Optional scheduling
   schedule: "0 0 * * *" # Optional, cron schedule for recurring actions
