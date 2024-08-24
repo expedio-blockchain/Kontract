@@ -23,22 +23,22 @@ Simplifies the deployment of blockchain resources with strait forward deployment
 ```mermaid
 graph TB
     subgraph KontractDeployer Operator
-        Network --> RPCProvider
-        Network --> BlockExplorer
+        RPCProvider --> Network
+        BlockExplorer --> Network
         Contract --> Network
         Wallet --> Network
         Contract --> Wallet
         ContractProxy --> Contract
-        ProxyAdmin --> ContractProxy
-        Contract --> Action
-        ContractProxy --> Action
-        ProxyAdmin --> Action
-        Action --> EventHook
-        Contract --> EventHook
-        Wallet --> GasStrategy
-        Contract --> GasStrategy
-        ContractProxy --> GasStrategy
-        ProxyAdmin --> GasStrategy
+        ContractProxy --> ProxyAdmin
+        Action --> Contract
+        Action --> ContractProxy
+        Action --> ProxyAdmin
+        EventHook --> Action
+        EventHook --> Contract
+        GasStrategy --> Wallet
+        GasStrategy --> Contract
+        GasStrategy --> ContractProxy
+        GasStrategy --> ProxyAdmin
     end
 ```
 
