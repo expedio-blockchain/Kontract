@@ -27,47 +27,35 @@ graph LR
 
     %% Grouping related resources in subgraphs
     subgraph Network_Resources
-        Network --> RPCProvider
-        Network --> BlockExplorer
-        Wallet --> Network
+        Network["Network: Represents a specific blockchain network"] --> RPCProvider["RPCProvider: Managed RPC provider for blockchain interaction"]
+        Network --> BlockExplorer["BlockExplorer: Retrieves blockchain data"]
+        Wallet["Wallet: Manages cryptographic keys for transactions"] --> Network
     end
 
     subgraph Contract_Resources
-        Contract --> Network
+        Contract["Contract: Smart contract for deployment"] --> Network
         Contract --> Wallet
-        Contract --> GasStrategy
-        ContractProxy --> Network
+        Contract --> GasStrategy["GasStrategy: Defines gas price strategies for transactions"]
+        ContractProxy["ContractProxy: Proxy for upgrading contracts"] --> Network
         ContractProxy --> Wallet
         ContractProxy --> Contract
         ContractProxy --> GasStrategy
-        ProxyAdmin --> Network
+        ProxyAdmin["ProxyAdmin: Administers upgrades for proxies"] --> Network
         ProxyAdmin --> Wallet
         ProxyAdmin --> GasStrategy
     end
 
     subgraph Action_Resources
-        Action --> Contract
+        Action["Action: Performs operations on blockchain resources"] --> Contract
         Action --> Network
         Action --> Wallet
         Action --> GasStrategy
     end
 
     subgraph Event_Resources
-        EventHook --> Action
+        EventHook["EventHook: Triggers actions based on blockchain events"] --> Action
         EventHook --> Contract
     end
-
-    %% Adding clickable links to internal markdown sections
-    click RPCProvider href "#rpcprovider" "Managed RPC provider for blockchain interaction"
-    click BlockExplorer href "#blockexplorer" "Block explorer service for retrieving blockchain data"
-    click Network href "#network" "Represents a specific blockchain network"
-    click Wallet href "#wallet" "Manages cryptographic keys for transactions"
-    click Contract href "#contract" "Represents a smart contract for deployment"
-    click ContractProxy href "#contractproxy" "Proxy contract for upgrading smart contracts"
-    click ProxyAdmin href "#proxyadmin" "Administers upgrades for proxy contracts"
-    click Action href "#action" "Performs operations on blockchain resources"
-    click EventHook href "#eventhook" "Triggers actions based on blockchain events"
-    click GasStrategy href "#gasstrategy" "Defines gas price strategies for transactions"
 ```
 
 ### RPCProvider
