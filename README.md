@@ -47,18 +47,14 @@ graph LR
         ProxyAdmin --> GasStrategy
     end
 
-    subgraph Action_Resources["Action Resources"]
-        style Action_Resources fill:#ffffcc,stroke:#333,stroke-width:2px;
-        Action:::componentBox --> Contract
+    subgraph Action_Event_Resources["Action and Event Resources"]
+        style Action_Event_Resources fill:#ffffcc,stroke:#333,stroke-width:2px;
+        EventHook:::componentBox --> Action:::componentBox
+        EventHook --> Contract
+        Action --> Contract
         Action --> Network
         Action --> Wallet
         Action --> GasStrategy
-    end
-
-    subgraph Event_Resources["Event Resources"]
-        style Event_Resources fill:#ffffcc,stroke:#333,stroke-width:2px;
-        EventHook:::componentBox --> Action
-        EventHook --> Contract
     end
 ```
 
