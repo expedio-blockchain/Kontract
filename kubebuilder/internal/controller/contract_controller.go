@@ -19,12 +19,11 @@ package controller
 import (
 	"context"
 	"fmt"
-	"path/filepath"
 
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1" // Corrected import
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -44,13 +43,10 @@ type ContractReconciler struct {
 // +kubebuilder:rbac:groups=kontractdeployer.expedio.xyz,resources=contracts/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=kontractdeployer.expedio.xyz,resources=contracts/finalizers,verbs=update
 // +kubebuilder:rbac:groups=batch,resources=jobs,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;create;update;delete
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
-// Modify the Reconcile function to compare the state specified by
-// the Contract object against the actual cluster state, and then
-// perform operations to make the cluster state reflect the state specified by
-// the user.
 func (r *ContractReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
 
@@ -63,6 +59,31 @@ func (r *ContractReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			return ctrl.Result{}, nil
 		}
 		// Error reading the object - requeue the request.
+		return ctrl.Result{}, err
+	}
+
+	// Create a ConfigMap for the contract code and tests
+	configMapName := fmt.Sprintf("%s-contract", contract.Name)
+
+	configMap := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      configMapName,
+			Namespace: req.Namespace,
+		},
+		Data: map[string]string{
+			"code":  contract.Spec.Code,
+			"tests": contract.Spec.Test,
+		},
+	}
+
+	// Set Contract instance as the owner and controller of the ConfigMap
+	if err := controllerutil.SetControllerReference(contract, configMap, r.Scheme); err != nil {
+		return ctrl.Result{}, err
+	}
+
+	// Create or update the ConfigMap
+	err = r.createOrUpdateConfigMap(ctx, configMap)
+	if err != nil {
 		return ctrl.Result{}, err
 	}
 
@@ -81,12 +102,18 @@ func (r *ContractReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 							Image: "docker.io/expedio/foundry:latest",
 							Command: []string{
 								"sh", "-c",
-								fmt.Sprintf("forge create %s", filepath.Join("/contracts", contract.Spec.ContractName)),
+								fmt.Sprintf("forge create /contracts/%s.sol", contract.Spec.ContractName),
 							},
 							VolumeMounts: []corev1.VolumeMount{
 								{
 									Name:      "contract-code",
 									MountPath: "/contracts",
+									SubPath:   "code",
+								},
+								{
+									Name:      "contract-tests",
+									MountPath: "/tests",
+									SubPath:   "tests",
 								},
 							},
 						},
@@ -97,7 +124,17 @@ func (r *ContractReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 							VolumeSource: corev1.VolumeSource{
 								ConfigMap: &corev1.ConfigMapVolumeSource{
 									LocalObjectReference: corev1.LocalObjectReference{
-										Name: contract.Spec.ContractName,
+										Name: configMapName,
+									},
+								},
+							},
+						},
+						{
+							Name: "contract-tests",
+							VolumeSource: corev1.VolumeSource{
+								ConfigMap: &corev1.ConfigMapVolumeSource{
+									LocalObjectReference: corev1.LocalObjectReference{
+										Name: configMapName,
 									},
 								},
 							},
@@ -109,7 +146,7 @@ func (r *ContractReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		},
 	}
 
-	// Set Contract instance as the owner and controller
+	// Set Contract instance as the owner and controller of the Job
 	if err := controllerutil.SetControllerReference(contract, job, r.Scheme); err != nil {
 		return ctrl.Result{}, err
 	}
@@ -133,6 +170,21 @@ func (r *ContractReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	// Job already exists - don't requeue
 	logger.Info("Skip reconcile: Job already exists", "Job.Namespace", found.Namespace, "Job.Name", found.Name)
 	return ctrl.Result{}, nil
+}
+
+// createOrUpdateConfigMap creates or updates a ConfigMap
+func (r *ContractReconciler) createOrUpdateConfigMap(ctx context.Context, cm *corev1.ConfigMap) error {
+	found := &corev1.ConfigMap{}
+	err := r.Get(ctx, client.ObjectKey{Name: cm.Name, Namespace: cm.Namespace}, found)
+	if err != nil && errors.IsNotFound(err) {
+		// ConfigMap not found, create it
+		return r.Create(ctx, cm)
+	} else if err != nil {
+		return err
+	}
+	// ConfigMap found, update it
+	found.Data = cm.Data
+	return r.Update(ctx, found)
 }
 
 // SetupWithManager sets up the controller with the Manager.
