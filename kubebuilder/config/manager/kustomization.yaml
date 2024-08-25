@@ -1,2 +1,8 @@
 resources:
 - manager.yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+images:
+- name: controller
+  newName: docker.io/expedio/kontract-deployer
+  newTag: 0.0.5
