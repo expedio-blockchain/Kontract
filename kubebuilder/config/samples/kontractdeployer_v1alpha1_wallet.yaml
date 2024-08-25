@@ -7,8 +7,9 @@ metadata:
   name: wallet-sample
 spec:
   walletType: EOA
-  secretRef: my-wallet-secret
   networkRef: ethereum-mainnet
-  import: true
+  importFrom:
+    secretRef: wallet-sample-wallet-secret
 status:
   publicKey: 0x...
+  secretRef: wallet-sample-wallet-secret

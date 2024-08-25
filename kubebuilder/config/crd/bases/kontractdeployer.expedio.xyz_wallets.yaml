@@ -39,25 +39,24 @@ spec:
           spec:
             description: WalletSpec defines the desired state of Wallet
             properties:
-              import:
-                description: Import indicates whether the wallet should be imported
-                  from an existing secret
-                type: boolean
+              importFrom:
+                description: ImportFrom specifies the details for importing an existing
+                  wallet
+                properties:
+                  secretRef:
+                    description: SecretRef references a Kubernetes Secret that contains
+                      the wallet's private key or mnemonic
+                    type: string
+                type: object
               networkRef:
                 description: NetworkRef references the Network resource where this
                   wallet is used
-                type: string
-              secretRef:
-                description: SecretRef references a Kubernetes Secret that contains
-                  the wallet's private key or mnemonic
                 type: string
               walletType:
                 description: WalletType specifies the type of wallet (e.g., EOA, Contract)
                 type: string
             required:
-            - import
             - networkRef
-            - secretRef
             - walletType
             type: object
           status:
@@ -66,8 +65,13 @@ spec:
               publicKey:
                 description: PublicKey stores the public key associated with the wallet
                 type: string
+              secretRef:
+                description: SecretRef stores the reference to the Kubernetes Secret
+                  that contains the wallet's private key or mnemonic
+                type: string
             required:
             - publicKey
+            - secretRef
             type: object
         type: object
     served: true
