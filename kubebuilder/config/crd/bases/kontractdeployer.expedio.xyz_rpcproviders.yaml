@@ -39,37 +39,45 @@ spec:
           spec:
             description: RPCProviderSpec defines the desired state of RPCProvider
             properties:
-              endpoint:
-                description: Endpoint is the URL of the RPC provider
-                type: string
               providerName:
                 description: ProviderName is the name of the RPC provider (e.g., Infura)
                 type: string
               secretRef:
                 description: SecretRef references a Kubernetes Secret that contains
-                  the API token
+                  the API token and endpoint URL
                 properties:
                   name:
-                    description: name is unique within a namespace to reference a
-                      secret resource.
+                    description: Name of the secret in the same namespace
                     type: string
-                  namespace:
-                    description: namespace defines the space within which the secret
-                      name must be unique.
+                  tokenKey:
+                    description: TokenKey is the key within the secret that contains
+                      the API token
                     type: string
+                  urlKey:
+                    description: URLKey is the key within the secret that contains
+                      the API endpoint URL
+                    type: string
+                required:
+                - name
+                - tokenKey
+                - urlKey
                 type: object
-                x-kubernetes-map-type: atomic
-              timeout:
-                description: Timeout defines the request timeout for the RPC calls
-                type: string
             required:
-            - endpoint
             - providerName
             - secretRef
-            - timeout
             type: object
           status:
             description: RPCProviderStatus defines the observed state of RPCProvider
+            properties:
+              apiEndpoint:
+                description: APIEndpoint is the actual API endpoint used for RPC calls
+                type: string
+              healthy:
+                description: Healthy indicates whether the RPCProvider is healthy
+                type: boolean
+            required:
+            - apiEndpoint
+            - healthy
             type: object
         type: object
     served: true

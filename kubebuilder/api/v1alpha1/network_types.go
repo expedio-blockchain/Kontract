@@ -34,14 +34,18 @@ type NetworkSpec struct {
 
 	// BlockExplorerRef references the BlockExplorer resource to be used for querying blockchain data
 	BlockExplorerRef corev1.LocalObjectReference `json:"blockExplorerRef"`
-
-	// GasPriceOracle is the URL of the gas price oracle service
-	GasPriceOracle string `json:"gasPriceOracle"`
 }
 
 // NetworkStatus defines the observed state of Network
 type NetworkStatus struct {
-	// Add status fields here if needed
+	// RPCEndpoint is the endpoint URL for the RPC provider
+	RPCEndpoint string `json:"rpcEndpoint,omitempty"`
+
+	// BlockExplorerEndpoint is the endpoint URL for the Block Explorer
+	BlockExplorerEndpoint string `json:"blockExplorerEndpoint,omitempty"`
+
+	// Healthy indicates whether the network is healthy
+	Healthy bool `json:"healthy,omitempty"`
 }
 
 // +kubebuilder:object:root=true

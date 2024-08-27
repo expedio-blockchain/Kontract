@@ -18,8 +18,16 @@ package controller
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"strings"
+	"time"
 
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -27,36 +35,173 @@ import (
 	kontractdeployerv1alpha1 "github.com/expedio-blockchain/KontractDeployer/api/v1alpha1"
 )
 
-// RPCProviderReconciler reconciles a RPCProvider object
+// RPCProviderReconciler reconciles an RPCProvider object
 type RPCProviderReconciler struct {
 	client.Client
-	Scheme *runtime.Scheme
+	Scheme   *runtime.Scheme
+	Recorder record.EventRecorder // Event recorder for logging events
 }
 
 // +kubebuilder:rbac:groups=kontractdeployer.expedio.xyz,resources=rpcproviders,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=kontractdeployer.expedio.xyz,resources=rpcproviders/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=kontractdeployer.expedio.xyz,resources=rpcproviders/finalizers,verbs=update
+// +kubebuilder:rbac:groups=kontractdeployer.expedio.xyz,resources=wallets,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=kontractdeployer.expedio.xyz,resources=wallets/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=kontractdeployer.expedio.xyz,resources=wallets/finalizers,verbs=update
+// +kubebuilder:rbac:groups="",resources=secrets,verbs=create;update;get;list;watch
+// +kubebuilder:rbac:groups="",resources=events,verbs=create;patch;update
+// +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch
 
-// Reconcile is part of the main kubernetes reconciliation loop which aims to
+// Reconcile is part of the main Kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
-// TODO(user): Modify the Reconcile function to compare the state specified by
-// the RPCProvider object against the actual cluster state, and then
-// perform operations to make the cluster state reflect the state specified by
-// the user.
-//
-// For more details, check Reconcile and its Result here:
-// - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.19.0/pkg/reconcile
 func (r *RPCProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
+	log := log.FromContext(ctx)
 
-	// TODO(user): your logic here
+	// Fetch the RPCProvider instance
+	var rpcProvider kontractdeployerv1alpha1.RPCProvider
+	if err := r.Get(ctx, req.NamespacedName, &rpcProvider); err != nil {
+		log.Error(err, "unable to fetch RPCProvider")
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
+	// Perform reconciliation logic if needed
+	// (You can leave this part empty or perform some reconciliation logic if required)
 
 	return ctrl.Result{}, nil
 }
 
+// StartPeriodicHealthCheck starts a background goroutine that checks the health of all RPCProviders every minute
+func (r *RPCProviderReconciler) StartPeriodicHealthCheck(ctx context.Context) {
+	go func() {
+		ticker := time.NewTicker(1 * time.Minute)
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				r.checkAllRPCProviders(ctx)
+			}
+		}
+	}()
+}
+
+// checkAllRPCProviders checks the health of all RPCProviders and updates their statuses
+func (r *RPCProviderReconciler) checkAllRPCProviders(ctx context.Context) {
+	log := log.FromContext(ctx)
+
+	// List all RPCProviders
+	var rpcProviders kontractdeployerv1alpha1.RPCProviderList
+	if err := r.List(ctx, &rpcProviders); err != nil {
+		log.Error(err, "unable to list RPCProviders")
+		return
+	}
+
+	for _, rpcProvider := range rpcProviders.Items {
+		log := log.WithValues("RPCProvider", rpcProvider.Name, "Namespace", rpcProvider.Namespace)
+
+		// Fetch the referenced secret
+		var secret corev1.Secret
+		secretName := types.NamespacedName{Namespace: rpcProvider.Namespace, Name: rpcProvider.Spec.SecretRef.Name}
+		if err := r.Get(ctx, secretName, &secret); err != nil {
+			log.Error(err, fmt.Sprintf("RPCProvider (%s) - unable to fetch Secret", rpcProvider.Name), "Secret", secretName)
+			r.updateStatus(ctx, &rpcProvider, false, "")
+			continue
+		}
+
+		// Extract tokenKey and urlKey from the secret
+		tokenKey := string(secret.Data[rpcProvider.Spec.SecretRef.TokenKey])
+		urlKey := string(secret.Data[rpcProvider.Spec.SecretRef.URLKey])
+
+		// Validate the existence of tokenKey and urlKey
+		if tokenKey == "" || urlKey == "" {
+			log.Error(fmt.Errorf("missing token key or URL key"), fmt.Sprintf("RPCProvider (%s) - missing required data in Secret", rpcProvider.Name))
+			r.updateStatus(ctx, &rpcProvider, false, "")
+			continue
+		}
+
+		// Construct the URL for the health check without logging the API key
+		url := fmt.Sprintf("%s/%s", strings.TrimRight(urlKey, "/"), tokenKey)
+		log.Info(fmt.Sprintf("RPCProvider (%s) - Performing periodic API health check", rpcProvider.Name))
+
+		// Perform the health check
+		if err := r.checkAPIHealth(ctx, url, rpcProvider.Name); err != nil {
+			log.Error(err, fmt.Sprintf("RPCProvider (%s) - API health check failed", rpcProvider.Name))
+			r.updateStatus(ctx, &rpcProvider, false, "")
+			r.Recorder.Event(&rpcProvider, corev1.EventTypeWarning, "APIHealthCheckFailed", "API health check failed")
+			continue
+		}
+
+		// Update the status to healthy: true without creating an event
+		r.updateStatus(ctx, &rpcProvider, true, urlKey)
+	}
+}
+
+// checkAPIHealth sends a POST request to check the health of the RPC provider by calling `eth_blockNumber`.
+func (r *RPCProviderReconciler) checkAPIHealth(ctx context.Context, url, rpcProviderName string) error {
+	log := log.FromContext(ctx)
+	client := http.Client{
+		Timeout: 10 * time.Second,
+	}
+
+	// Mock blockchain operation - call eth_blockNumber
+	requestBody := strings.NewReader(`{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}`)
+	req, err := http.NewRequest("POST", url, requestBody)
+	if err != nil {
+		log.Error(err, fmt.Sprintf("RPCProvider (%s) - Failed to create API health check request", rpcProviderName))
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	log.Info(fmt.Sprintf("RPCProvider (%s) - Sending API health check request", rpcProviderName))
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Error(err, fmt.Sprintf("RPCProvider (%s) - Failed to send API health check request", rpcProviderName))
+		return err
+	}
+	defer resp.Body.Close()
+
+	log.Info(fmt.Sprintf("RPCProvider (%s) - Received response from API health check", rpcProviderName), "statusCode", resp.StatusCode)
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("received non-200 response: %d", resp.StatusCode)
+	}
+
+	// Decode the JSON response to verify it's a valid JSON-RPC response
+	var result map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		log.Error(err, fmt.Sprintf("RPCProvider (%s) - Failed to decode API health check response", rpcProviderName))
+		return err
+	}
+
+	log.Info(fmt.Sprintf("RPCProvider (%s) - Decoded API health check response", rpcProviderName))
+
+	if _, ok := result["result"]; !ok {
+		return fmt.Errorf("invalid JSON-RPC response: %v", result)
+	}
+
+	log.Info(fmt.Sprintf("RPCProvider (%s) - API health check succeeded", rpcProviderName))
+	return nil
+}
+
+// updateStatus updates the status of the RPCProvider resource
+func (r *RPCProviderReconciler) updateStatus(ctx context.Context, rpcProvider *kontractdeployerv1alpha1.RPCProvider, healthy bool, apiEndpoint string) {
+	rpcProvider.Status.Healthy = healthy
+	rpcProvider.Status.APIEndpoint = apiEndpoint
+	if err := r.Status().Update(ctx, rpcProvider); err != nil {
+		log.FromContext(ctx).Error(err, fmt.Sprintf("RPCProvider (%s) - unable to update RPCProvider status", rpcProvider.Name))
+	}
+}
+
 // SetupWithManager sets up the controller with the Manager.
 func (r *RPCProviderReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	return ctrl.NewControllerManagedBy(mgr).
+	r.Recorder = mgr.GetEventRecorderFor("rpcprovider-controller") // Initialize the event recorder
+	if err := ctrl.NewControllerManagedBy(mgr).
 		For(&kontractdeployerv1alpha1.RPCProvider{}).
-		Complete(r)
+		Complete(r); err != nil {
+		return err
+	}
+	// Start the periodic health check
+	r.StartPeriodicHealthCheck(context.Background())
+	return nil
 }

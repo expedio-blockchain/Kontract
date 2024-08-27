@@ -17,28 +17,37 @@ limitations under the License.
 package v1alpha1
 
 import (
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
+
+// SecretKeyReference defines a reference to a specific key within a Secret
+type SecretKeyReference struct {
+	// Name of the secret in the same namespace
+	Name string `json:"name"`
+
+	// TokenKey is the key within the secret that contains the API token
+	TokenKey string `json:"tokenKey"`
+
+	// URLKey is the key within the secret that contains the API endpoint URL
+	URLKey string `json:"urlKey"`
+}
 
 // RPCProviderSpec defines the desired state of RPCProvider
 type RPCProviderSpec struct {
 	// ProviderName is the name of the RPC provider (e.g., Infura)
 	ProviderName string `json:"providerName"`
 
-	// Endpoint is the URL of the RPC provider
-	Endpoint string `json:"endpoint"`
-
-	// SecretRef references a Kubernetes Secret that contains the API token
-	SecretRef corev1.SecretReference `json:"secretRef"`
-
-	// Timeout defines the request timeout for the RPC calls
-	Timeout metav1.Duration `json:"timeout"`
+	// SecretRef references a Kubernetes Secret that contains the API token and endpoint URL
+	SecretRef SecretKeyReference `json:"secretRef"`
 }
 
 // RPCProviderStatus defines the observed state of RPCProvider
 type RPCProviderStatus struct {
-	// Add status fields here if needed
+	// Healthy indicates whether the RPCProvider is healthy
+	Healthy bool `json:"healthy"`
+
+	// APIEndpoint is the actual API endpoint used for RPC calls
+	APIEndpoint string `json:"apiEndpoint"`
 }
 
 // +kubebuilder:object:root=true

@@ -17,7 +17,6 @@ limitations under the License.
 package v1alpha1
 
 import (
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -26,16 +25,21 @@ type BlockExplorerSpec struct {
 	// ExplorerName is the name of the block explorer (e.g., Etherscan)
 	ExplorerName string `json:"explorerName"`
 
-	// Endpoint is the API URL of the block explorer
-	Endpoint string `json:"endpoint"`
+	// SecretRef references a Kubernetes Secret and specifies the keys for API token and URL
+	SecretRef BlockExplorerSecretRef `json:"secretRef"`
+}
 
-	// SecretRef references a Kubernetes Secret that contains the API token
-	SecretRef corev1.SecretReference `json:"secretRef"`
+// BlockExplorerSecretRef is a custom struct for handling specific keys in the Secret
+type BlockExplorerSecretRef struct {
+	Name     string `json:"name"`
+	TokenKey string `json:"tokenKey"`
+	URLKey   string `json:"urlKey"`
 }
 
 // BlockExplorerStatus defines the observed state of BlockExplorer
 type BlockExplorerStatus struct {
-	// Add status fields here if needed
+	Healthy     bool   `json:"healthy,omitempty"`
+	APIEndpoint string `json:"apiEndpoint,omitempty"`
 }
 
 // +kubebuilder:object:root=true
