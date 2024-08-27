@@ -39,29 +39,26 @@ spec:
           spec:
             description: BlockExplorerSpec defines the desired state of BlockExplorer
             properties:
-              endpoint:
-                description: Endpoint is the API URL of the block explorer
-                type: string
               explorerName:
                 description: ExplorerName is the name of the block explorer (e.g.,
                   Etherscan)
                 type: string
               secretRef:
-                description: SecretRef references a Kubernetes Secret that contains
-                  the API token
+                description: SecretRef references a Kubernetes Secret and specifies
+                  the keys for API token and endpoint
                 properties:
+                  apiEndpoint:
+                    type: string
+                  apiKey:
+                    type: string
                   name:
-                    description: name is unique within a namespace to reference a
-                      secret resource.
                     type: string
-                  namespace:
-                    description: namespace defines the space within which the secret
-                      name must be unique.
-                    type: string
+                required:
+                - apiEndpoint
+                - apiKey
+                - name
                 type: object
-                x-kubernetes-map-type: atomic
             required:
-            - endpoint
             - explorerName
             - secretRef
             type: object
@@ -69,10 +66,8 @@ spec:
             description: BlockExplorerStatus defines the observed state of BlockExplorer
             properties:
               apiEndpoint:
-                description: APIEndpoint is the current endpoint being used
                 type: string
               healthy:
-                description: Healthy indicates the current health status of the BlockExplorer
                 type: boolean
             type: object
         type: object
