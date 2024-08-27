@@ -7,8 +7,11 @@ metadata:
   name: rpcprovider-sample
 spec:
   providerName: Infura
-  endpoint: <https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID>
   secretRef:
     name: infura-api-secret
-    key: api-token
+    apiKey: <key-name>
+    apiEndpoint: <key-name>
   timeout: 5s
+status:
+  status: ready
+  apiEndpoint: <api-endpoint>
