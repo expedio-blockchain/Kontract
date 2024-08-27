@@ -106,7 +106,7 @@ func (r *RPCProviderReconciler) checkAllRPCProviders(ctx context.Context) {
 		secretName := types.NamespacedName{Namespace: rpcProvider.Namespace, Name: rpcProvider.Spec.SecretRef.Name}
 		if err := r.Get(ctx, secretName, &secret); err != nil {
 			log.Error(err, fmt.Sprintf("RPCProvider (%s) - unable to fetch Secret", rpcProvider.Name), "Secret", secretName)
-			r.updateStatus(ctx, &rpcProvider, "failed", "")
+			r.updateStatus(ctx, &rpcProvider, false, "")
 			continue
 		}
 
@@ -117,7 +117,7 @@ func (r *RPCProviderReconciler) checkAllRPCProviders(ctx context.Context) {
 		// Validate the existence of API key and endpoint
 		if apiKey == "" || apiEndpoint == "" {
 			log.Error(fmt.Errorf("missing API key or endpoint"), fmt.Sprintf("RPCProvider (%s) - missing required data in Secret", rpcProvider.Name))
-			r.updateStatus(ctx, &rpcProvider, "failed", "")
+			r.updateStatus(ctx, &rpcProvider, false, "")
 			continue
 		}
 
@@ -128,13 +128,13 @@ func (r *RPCProviderReconciler) checkAllRPCProviders(ctx context.Context) {
 		// Perform the health check
 		if err := r.checkAPIHealth(ctx, url, rpcProvider.Name); err != nil {
 			log.Error(err, fmt.Sprintf("RPCProvider (%s) - API health check failed", rpcProvider.Name))
-			r.updateStatus(ctx, &rpcProvider, "failed", "")
+			r.updateStatus(ctx, &rpcProvider, false, "")
 			r.Recorder.Event(&rpcProvider, corev1.EventTypeWarning, "APIHealthCheckFailed", "API health check failed")
 			continue
 		}
 
-		// Update the status to "ready" without creating an event
-		r.updateStatus(ctx, &rpcProvider, "ready", apiEndpoint)
+		// Update the status to healthy: true without creating an event
+		r.updateStatus(ctx, &rpcProvider, true, apiEndpoint)
 	}
 }
 
@@ -185,8 +185,8 @@ func (r *RPCProviderReconciler) checkAPIHealth(ctx context.Context, url, rpcProv
 }
 
 // updateStatus updates the status of the RPCProvider resource
-func (r *RPCProviderReconciler) updateStatus(ctx context.Context, rpcProvider *kontractdeployerv1alpha1.RPCProvider, status string, apiEndpoint string) {
-	rpcProvider.Status.Status = status
+func (r *RPCProviderReconciler) updateStatus(ctx context.Context, rpcProvider *kontractdeployerv1alpha1.RPCProvider, healthy bool, apiEndpoint string) {
+	rpcProvider.Status.Healthy = healthy
 	rpcProvider.Status.APIEndpoint = apiEndpoint
 	if err := r.Status().Update(ctx, rpcProvider); err != nil {
 		log.FromContext(ctx).Error(err, fmt.Sprintf("RPCProvider (%s) - unable to update RPCProvider status", rpcProvider.Name))

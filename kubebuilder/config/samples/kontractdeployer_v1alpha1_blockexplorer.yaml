@@ -7,7 +7,10 @@ metadata:
   name: blockexplorer-sample
 spec:
   explorerName: Etherscan
-  endpoint: <https://api.etherscan.io/api>
   secretRef:
     name: etherscan-api-secret
-    key: api-token
+    apiKey: key
+    apiEndpoint: endpoint
+status:
+  healthy: true
+  apiEndpoint: <api-endpoint>

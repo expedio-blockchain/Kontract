@@ -46,8 +46,8 @@ type RPCProviderSpec struct {
 
 // RPCProviderStatus defines the observed state of RPCProvider
 type RPCProviderStatus struct {
-	// Status indicates the current status of the RPCProvider
-	Status string `json:"status"`
+	// Healthy indicates whether the RPCProvider is healthy
+	Healthy bool `json:"healthy"`
 
 	// APIEndpoint is the actual API endpoint used for RPC calls
 	APIEndpoint string `json:"apiEndpoint"`

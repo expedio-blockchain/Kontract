@@ -76,12 +76,12 @@ spec:
               apiEndpoint:
                 description: APIEndpoint is the actual API endpoint used for RPC calls
                 type: string
-              status:
-                description: Status indicates the current status of the RPCProvider
-                type: string
+              healthy:
+                description: Healthy indicates whether the RPCProvider is healthy
+                type: boolean
             required:
             - apiEndpoint
-            - status
+            - healthy
             type: object
         type: object
     served: true

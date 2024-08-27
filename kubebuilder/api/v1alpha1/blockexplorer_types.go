@@ -35,7 +35,11 @@ type BlockExplorerSpec struct {
 
 // BlockExplorerStatus defines the observed state of BlockExplorer
 type BlockExplorerStatus struct {
-	// Add status fields here if needed
+	// Healthy indicates the current health status of the BlockExplorer
+	Healthy bool `json:"healthy,omitempty"`
+
+	// APIEndpoint is the current endpoint being used
+	APIEndpoint string `json:"apiEndpoint,omitempty"`
 }
 
 // +kubebuilder:object:root=true

@@ -67,6 +67,13 @@ spec:
             type: object
           status:
             description: BlockExplorerStatus defines the observed state of BlockExplorer
+            properties:
+              apiEndpoint:
+                description: APIEndpoint is the current endpoint being used
+                type: string
+              healthy:
+                description: Healthy indicates the current health status of the BlockExplorer
+                type: boolean
             type: object
         type: object
     served: true
