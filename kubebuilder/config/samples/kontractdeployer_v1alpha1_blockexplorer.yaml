@@ -9,8 +9,8 @@ spec:
   explorerName: Etherscan
   secretRef:
     name: etherscan-api-secret
-    apiKey: key
-    apiEndpoint: endpoint
+    tokenKey: api-token
+    urlKey: api-endpoint
 status:
   healthy: true
   apiEndpoint: <api-endpoint>

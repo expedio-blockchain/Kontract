@@ -44,31 +44,27 @@ spec:
                 type: string
               secretRef:
                 description: SecretRef references a Kubernetes Secret that contains
-                  the API token and endpoint
+                  the API token and endpoint URL
                 properties:
-                  apiEndpoint:
-                    description: APIEndpoint is the key within the secret that contains
-                      the API endpoint
-                    type: string
-                  apiKey:
-                    description: APIKey is the key within the secret that contains
-                      the API token
-                    type: string
                   name:
                     description: Name of the secret in the same namespace
                     type: string
+                  tokenKey:
+                    description: TokenKey is the key within the secret that contains
+                      the API token
+                    type: string
+                  urlKey:
+                    description: URLKey is the key within the secret that contains
+                      the API endpoint URL
+                    type: string
                 required:
-                - apiEndpoint
-                - apiKey
                 - name
+                - tokenKey
+                - urlKey
                 type: object
-              timeout:
-                description: Timeout defines the request timeout for the RPC calls
-                type: string
             required:
             - providerName
             - secretRef
-            - timeout
             type: object
           status:
             description: RPCProviderStatus defines the observed state of RPCProvider

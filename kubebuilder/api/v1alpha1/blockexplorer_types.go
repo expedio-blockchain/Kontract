@@ -25,15 +25,15 @@ type BlockExplorerSpec struct {
 	// ExplorerName is the name of the block explorer (e.g., Etherscan)
 	ExplorerName string `json:"explorerName"`
 
-	// SecretRef references a Kubernetes Secret and specifies the keys for API token and endpoint
+	// SecretRef references a Kubernetes Secret and specifies the keys for API token and URL
 	SecretRef BlockExplorerSecretRef `json:"secretRef"`
 }
 
 // BlockExplorerSecretRef is a custom struct for handling specific keys in the Secret
 type BlockExplorerSecretRef struct {
-	Name        string `json:"name"`
-	APIKey      string `json:"apiKey"`
-	APIEndpoint string `json:"apiEndpoint"`
+	Name     string `json:"name"`
+	TokenKey string `json:"tokenKey"`
+	URLKey   string `json:"urlKey"`
 }
 
 // BlockExplorerStatus defines the observed state of BlockExplorer

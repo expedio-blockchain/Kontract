@@ -106,19 +106,19 @@ func (r *BlockExplorerReconciler) checkAllBlockExplorers(ctx context.Context) {
 			continue
 		}
 
-		// Extract API token and API endpoint from the secret using the specified keys
-		apiKey := string(secret.Data[blockExplorer.Spec.SecretRef.APIKey])
-		apiEndpoint := string(secret.Data[blockExplorer.Spec.SecretRef.APIEndpoint])
+		// Extract API token and URL from the secret using the specified keys
+		token := string(secret.Data[blockExplorer.Spec.SecretRef.TokenKey])
+		apiEndpoint := string(secret.Data[blockExplorer.Spec.SecretRef.URLKey])
 
-		// Validate the existence of the API key and endpoint
-		if apiKey == "" || apiEndpoint == "" {
-			log.Error(fmt.Errorf("missing API key or endpoint"), fmt.Sprintf("BlockExplorer (%s) - missing required data in Secret", blockExplorer.Name))
+		// Validate the existence of the token and URL
+		if token == "" || apiEndpoint == "" {
+			log.Error(fmt.Errorf("missing token or URL"), fmt.Sprintf("BlockExplorer (%s) - missing required data in Secret", blockExplorer.Name))
 			r.updateStatus(ctx, &blockExplorer, false, "")
 			continue
 		}
 
 		// Perform the health check
-		if err := r.checkAPIHealth(ctx, apiEndpoint, apiKey, blockExplorer.Name); err != nil {
+		if err := r.checkAPIHealth(ctx, apiEndpoint, token, blockExplorer.Name); err != nil {
 			log.Error(err, fmt.Sprintf("BlockExplorer (%s) - API health check failed", blockExplorer.Name))
 			r.updateStatus(ctx, &blockExplorer, false, "")
 			r.Recorder.Event(&blockExplorer, corev1.EventTypeWarning, "APIHealthCheckFailed", "API health check failed")
@@ -131,14 +131,14 @@ func (r *BlockExplorerReconciler) checkAllBlockExplorers(ctx context.Context) {
 }
 
 // checkAPIHealth sends a GET request to check the health of the BlockExplorer by verifying access to the API endpoint.
-func (r *BlockExplorerReconciler) checkAPIHealth(ctx context.Context, endpoint, apiKey, blockExplorerName string) error {
+func (r *BlockExplorerReconciler) checkAPIHealth(ctx context.Context, endpoint, token, blockExplorerName string) error {
 	log := log.FromContext(ctx)
 	client := http.Client{
 		Timeout: 10 * time.Second,
 	}
 
 	// Construct the URL for the health check
-	url := fmt.Sprintf("%s?module=block&action=getblockreward&blockno=2165403&apikey=%s", strings.TrimRight(endpoint, "/"), apiKey)
+	url := fmt.Sprintf("%s?module=block&action=getblockreward&blockno=2165403&apikey=%s", strings.TrimRight(endpoint, "/"), token)
 	log.Info(fmt.Sprintf("BlockExplorer (%s) - Performing API health check", blockExplorerName))
 
 	// Perform the GET request

@@ -9,8 +9,8 @@ spec:
   providerName: Infura
   secretRef:
     name: infura-api-secret
-    apiKey: <key-name>
-    apiEndpoint: <key-name>
+    tokenKey: <key-name>
+    urlKey: <key-name>
   timeout: 5s
 status:
   status: ready

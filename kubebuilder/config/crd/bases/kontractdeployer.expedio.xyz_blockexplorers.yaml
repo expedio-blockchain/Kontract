@@ -45,18 +45,18 @@ spec:
                 type: string
               secretRef:
                 description: SecretRef references a Kubernetes Secret and specifies
-                  the keys for API token and endpoint
+                  the keys for API token and URL
                 properties:
-                  apiEndpoint:
-                    type: string
-                  apiKey:
-                    type: string
                   name:
                     type: string
+                  tokenKey:
+                    type: string
+                  urlKey:
+                    type: string
                 required:
-                - apiEndpoint
-                - apiKey
                 - name
+                - tokenKey
+                - urlKey
                 type: object
             required:
             - explorerName

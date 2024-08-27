@@ -25,11 +25,11 @@ type SecretKeyReference struct {
 	// Name of the secret in the same namespace
 	Name string `json:"name"`
 
-	// APIKey is the key within the secret that contains the API token
-	APIKey string `json:"apiKey"`
+	// TokenKey is the key within the secret that contains the API token
+	TokenKey string `json:"tokenKey"`
 
-	// APIEndpoint is the key within the secret that contains the API endpoint
-	APIEndpoint string `json:"apiEndpoint"`
+	// URLKey is the key within the secret that contains the API endpoint URL
+	URLKey string `json:"urlKey"`
 }
 
 // RPCProviderSpec defines the desired state of RPCProvider
@@ -37,11 +37,8 @@ type RPCProviderSpec struct {
 	// ProviderName is the name of the RPC provider (e.g., Infura)
 	ProviderName string `json:"providerName"`
 
-	// SecretRef references a Kubernetes Secret that contains the API token and endpoint
+	// SecretRef references a Kubernetes Secret that contains the API token and endpoint URL
 	SecretRef SecretKeyReference `json:"secretRef"`
-
-	// Timeout defines the request timeout for the RPC calls
-	Timeout metav1.Duration `json:"timeout"`
 }
 
 // RPCProviderStatus defines the observed state of RPCProvider

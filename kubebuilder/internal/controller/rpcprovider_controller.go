@@ -110,19 +110,19 @@ func (r *RPCProviderReconciler) checkAllRPCProviders(ctx context.Context) {
 			continue
 		}
 
-		// Extract API token and API endpoint from the secret
-		apiKey := string(secret.Data[rpcProvider.Spec.SecretRef.APIKey])
-		apiEndpoint := string(secret.Data[rpcProvider.Spec.SecretRef.APIEndpoint])
+		// Extract tokenKey and urlKey from the secret
+		tokenKey := string(secret.Data[rpcProvider.Spec.SecretRef.TokenKey])
+		urlKey := string(secret.Data[rpcProvider.Spec.SecretRef.URLKey])
 
-		// Validate the existence of API key and endpoint
-		if apiKey == "" || apiEndpoint == "" {
-			log.Error(fmt.Errorf("missing API key or endpoint"), fmt.Sprintf("RPCProvider (%s) - missing required data in Secret", rpcProvider.Name))
+		// Validate the existence of tokenKey and urlKey
+		if tokenKey == "" || urlKey == "" {
+			log.Error(fmt.Errorf("missing token key or URL key"), fmt.Sprintf("RPCProvider (%s) - missing required data in Secret", rpcProvider.Name))
 			r.updateStatus(ctx, &rpcProvider, false, "")
 			continue
 		}
 
 		// Construct the URL for the health check without logging the API key
-		url := fmt.Sprintf("%s/%s", strings.TrimRight(apiEndpoint, "/"), apiKey)
+		url := fmt.Sprintf("%s/%s", strings.TrimRight(urlKey, "/"), tokenKey)
 		log.Info(fmt.Sprintf("RPCProvider (%s) - Performing periodic API health check", rpcProvider.Name))
 
 		// Perform the health check
@@ -134,7 +134,7 @@ func (r *RPCProviderReconciler) checkAllRPCProviders(ctx context.Context) {
 		}
 
 		// Update the status to healthy: true without creating an event
-		r.updateStatus(ctx, &rpcProvider, true, apiEndpoint)
+		r.updateStatus(ctx, &rpcProvider, true, urlKey)
 	}
 }
 
