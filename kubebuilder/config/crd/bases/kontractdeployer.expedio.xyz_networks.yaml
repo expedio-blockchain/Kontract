@@ -58,9 +58,6 @@ spec:
                 description: ChainID is the unique identifier for the blockchain network
                   (e.g., 1 for Ethereum Mainnet)
                 type: integer
-              gasPriceOracle:
-                description: GasPriceOracle is the URL of the gas price oracle service
-                type: string
               networkName:
                 description: NetworkName is the name of the blockchain network (e.g.,
                   EthereumMainnet)
@@ -83,12 +80,22 @@ spec:
             required:
             - blockExplorerRef
             - chainID
-            - gasPriceOracle
             - networkName
             - rpcProviderRef
             type: object
           status:
             description: NetworkStatus defines the observed state of Network
+            properties:
+              blockExplorerEndpoint:
+                description: BlockExplorerEndpoint is the endpoint URL for the Block
+                  Explorer
+                type: string
+              healthy:
+                description: Healthy indicates whether the network is healthy
+                type: boolean
+              rpcEndpoint:
+                description: RPCEndpoint is the endpoint URL for the RPC provider
+                type: string
             type: object
         type: object
     served: true

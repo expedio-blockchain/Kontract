@@ -37,19 +37,44 @@ type NetworkReconciler struct {
 // +kubebuilder:rbac:groups=kontractdeployer.expedio.xyz,resources=networks/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=kontractdeployer.expedio.xyz,resources=networks/finalizers,verbs=update
 
-// Reconcile is part of the main kubernetes reconciliation loop which aims to
+// Reconcile is part of the main Kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
-// TODO(user): Modify the Reconcile function to compare the state specified by
-// the Network object against the actual cluster state, and then
-// perform operations to make the cluster state reflect the state specified by
-// the user.
-//
-// For more details, check Reconcile and its Result here:
-// - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.19.0/pkg/reconcile
 func (r *NetworkReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
+	logger := log.FromContext(ctx)
 
-	// TODO(user): your logic here
+	// Fetch the Network instance
+	var network kontractdeployerv1alpha1.Network
+	if err := r.Get(ctx, req.NamespacedName, &network); err != nil {
+		logger.Error(err, "unable to fetch Network")
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
+	// Fetch the referenced RPCProvider
+	var rpcProvider kontractdeployerv1alpha1.RPCProvider
+	if err := r.Get(ctx, client.ObjectKey{Name: network.Spec.RPCProviderRef.Name, Namespace: network.Namespace}, &rpcProvider); err != nil {
+		logger.Error(err, "unable to fetch RPCProvider")
+		return ctrl.Result{}, err
+	}
+
+	// Fetch the referenced BlockExplorer
+	var blockExplorer kontractdeployerv1alpha1.BlockExplorer
+	if err := r.Get(ctx, client.ObjectKey{Name: network.Spec.BlockExplorerRef.Name, Namespace: network.Namespace}, &blockExplorer); err != nil {
+		logger.Error(err, "unable to fetch BlockExplorer")
+		return ctrl.Result{}, err
+	}
+
+	// Update Network status with RPC and BlockExplorer endpoints
+	network.Status.RPCEndpoint = rpcProvider.Status.APIEndpoint
+	network.Status.BlockExplorerEndpoint = blockExplorer.Status.APIEndpoint
+
+	// Determine the health status
+	network.Status.Healthy = rpcProvider.Status.Healthy && blockExplorer.Status.Healthy
+
+	// Update the Network status
+	if err := r.Status().Update(ctx, &network); err != nil {
+		logger.Error(err, "unable to update Network status")
+		return ctrl.Result{}, err
+	}
 
 	return ctrl.Result{}, nil
 }
