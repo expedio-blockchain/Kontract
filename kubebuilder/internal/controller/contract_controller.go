@@ -20,11 +20,13 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/go-logr/logr"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -36,7 +38,8 @@ import (
 // ContractReconciler reconciles a Contract object
 type ContractReconciler struct {
 	client.Client
-	Scheme *runtime.Scheme
+	Scheme   *runtime.Scheme
+	Recorder *logr.Logger
 }
 
 // +kubebuilder:rbac:groups=kontractdeployer.expedio.xyz,resources=contracts,verbs=get;list;watch;create;update;patch;delete
@@ -61,33 +64,128 @@ func (r *ContractReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		// Error reading the object - requeue the request.
 		return ctrl.Result{}, err
 	}
+	logger.Info("Fetching the Contract instance", "Contract.Name", contract.Name)
+
+	// Fetch the Network instance
+	network := &kontractdeployerv1alpha1.Network{}
+	err = r.Get(ctx, types.NamespacedName{Name: contract.Spec.NetworkRef, Namespace: req.Namespace}, network)
+	if err != nil {
+		logger.Error(err, "Failed to get Network")
+		r.Recorder.Error(err, "Failed to get Network", "NetworkRef", contract.Spec.NetworkRef)
+		return ctrl.Result{}, err
+	}
+	logger.Info("Fetching the Network instance", "Network.Name", network.Name)
+
+	// Fetch the RPCProvider referenced by the Network
+	rpcProvider := &kontractdeployerv1alpha1.RPCProvider{}
+	err = r.Get(ctx, types.NamespacedName{Name: network.Spec.RPCProviderRef.Name, Namespace: req.Namespace}, rpcProvider)
+	if err != nil {
+		logger.Error(err, "Failed to get RPCProvider")
+		r.Recorder.Error(err, "Failed to get RPCProvider", "RPCProviderRef", network.Spec.RPCProviderRef.Name)
+		return ctrl.Result{}, err
+	}
+	logger.Info("Fetching the RPCProvider instance", "RPCProvider.Name", rpcProvider.Name)
+
+	// Fetch the Secret referenced by the RPCProvider
+	rpcProviderSecret := &corev1.Secret{}
+	err = r.Get(ctx, types.NamespacedName{Name: rpcProvider.Spec.SecretRef.Name, Namespace: req.Namespace}, rpcProviderSecret)
+	if err != nil {
+		logger.Error(err, "Failed to get RPCProvider Secret")
+		r.Recorder.Error(err, "Failed to get RPCProvider Secret", "Secret.Name", rpcProvider.Spec.SecretRef.Name)
+		return ctrl.Result{}, err
+	}
+	logger.Info("Fetching the RPCProvider Secret", "Secret.Name", rpcProvider.Spec.SecretRef.Name)
+
+	// Fetch the Wallet Secret
+	walletSecretName := fmt.Sprintf("%s-wallet-secret", contract.Spec.WalletRef)
+	walletSecret := &corev1.Secret{}
+	err = r.Get(ctx, types.NamespacedName{Name: walletSecretName, Namespace: req.Namespace}, walletSecret)
+	if err != nil {
+		logger.Error(err, "Failed to get Wallet Secret")
+		r.Recorder.Error(err, "Failed to get Wallet Secret", "WalletSecret.Name", walletSecretName)
+		return ctrl.Result{}, err
+	}
+	logger.Info("Fetching the Wallet Secret", "WalletSecret.Name", walletSecretName)
 
 	// Create a ConfigMap for the contract code and tests
 	configMapName := fmt.Sprintf("%s-contract", contract.Name)
+	configMapData := map[string]string{
+		"code": contract.Spec.Code,
+	}
+
+	// Only add the test data if it exists
+	if contract.Spec.Test != "" {
+		configMapData["tests"] = contract.Spec.Test
+	}
 
 	configMap := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      configMapName,
 			Namespace: req.Namespace,
 		},
-		Data: map[string]string{
-			"code":  contract.Spec.Code,
-			"tests": contract.Spec.Test,
-		},
+		Data: configMapData,
 	}
 
 	// Set Contract instance as the owner and controller of the ConfigMap
 	if err := controllerutil.SetControllerReference(contract, configMap, r.Scheme); err != nil {
+		r.Recorder.Error(err, "Failed to set owner reference for ConfigMap", "ConfigMap.Name", configMapName)
 		return ctrl.Result{}, err
 	}
 
 	// Create or update the ConfigMap
 	err = r.createOrUpdateConfigMap(ctx, configMap)
 	if err != nil {
+		r.Recorder.Error(err, "Failed to create or update ConfigMap", "ConfigMap.Name", configMapName)
 		return ctrl.Result{}, err
 	}
+	logger.Info("ConfigMap created or updated", "ConfigMap.Name", configMapName)
 
 	// Define the job that will deploy the contract
+	contractFileName := fmt.Sprintf("%s.sol", contract.Spec.ContractName)
+	testFileName := fmt.Sprintf("%s.t.sol", contract.Spec.ContractName)
+
+	// Define the job that will deploy the contract
+	volumeMounts := []corev1.VolumeMount{
+		{
+			Name:      "contract-code",
+			MountPath: fmt.Sprintf("/home/foundryuser/expedio-kontract-deployer/src/%s", contractFileName),
+			SubPath:   "code",
+		},
+	}
+
+	volumes := []corev1.Volume{
+		{
+			Name: "contract-code",
+			VolumeSource: corev1.VolumeSource{
+				ConfigMap: &corev1.ConfigMapVolumeSource{
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: configMapName,
+					},
+				},
+			},
+		},
+	}
+
+	// Only add the test volume if the test data exists
+	if contract.Spec.Test != "" {
+		volumeMounts = append(volumeMounts, corev1.VolumeMount{
+			Name:      "contract-tests",
+			MountPath: fmt.Sprintf("/home/foundryuser/expedio-kontract-deployer/test/%s", testFileName),
+			SubPath:   "tests",
+		})
+
+		volumes = append(volumes, corev1.Volume{
+			Name: "contract-tests",
+			VolumeSource: corev1.VolumeSource{
+				ConfigMap: &corev1.ConfigMapVolumeSource{
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: configMapName,
+					},
+				},
+			},
+		})
+	}
+
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("contract-deploy-%s", contract.Name),
@@ -100,46 +198,28 @@ func (r *ContractReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 						{
 							Name:  "foundry",
 							Image: "docker.io/expedio/foundry:latest",
-							Command: []string{
-								"sh", "-c",
-								fmt.Sprintf("forge create /contracts/%s.sol", contract.Spec.ContractName),
-							},
-							VolumeMounts: []corev1.VolumeMount{
+							Env: []corev1.EnvVar{
 								{
-									Name:      "contract-code",
-									MountPath: "/contracts",
-									SubPath:   "code",
+									Name:  "RPC_URL",
+									Value: string(rpcProviderSecret.Data[rpcProvider.Spec.SecretRef.URLKey]),
 								},
 								{
-									Name:      "contract-tests",
-									MountPath: "/tests",
-									SubPath:   "tests",
+									Name:  "RPC_KEY",
+									Value: string(rpcProviderSecret.Data[rpcProvider.Spec.SecretRef.TokenKey]),
+								},
+								{
+									Name:  "WALLET_PRV_KEY",
+									Value: string(walletSecret.Data["privateKey"]),
+								},
+								{
+									Name:  "CONTRACT_NAME",
+									Value: contract.Spec.ContractName,
 								},
 							},
+							VolumeMounts: volumeMounts,
 						},
 					},
-					Volumes: []corev1.Volume{
-						{
-							Name: "contract-code",
-							VolumeSource: corev1.VolumeSource{
-								ConfigMap: &corev1.ConfigMapVolumeSource{
-									LocalObjectReference: corev1.LocalObjectReference{
-										Name: configMapName,
-									},
-								},
-							},
-						},
-						{
-							Name: "contract-tests",
-							VolumeSource: corev1.VolumeSource{
-								ConfigMap: &corev1.ConfigMapVolumeSource{
-									LocalObjectReference: corev1.LocalObjectReference{
-										Name: configMapName,
-									},
-								},
-							},
-						},
-					},
+					Volumes:       volumes,
 					RestartPolicy: corev1.RestartPolicyOnFailure,
 				},
 			},
@@ -148,6 +228,7 @@ func (r *ContractReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	// Set Contract instance as the owner and controller of the Job
 	if err := controllerutil.SetControllerReference(contract, job, r.Scheme); err != nil {
+		r.Recorder.Error(err, "Failed to set owner reference for Job", "Job.Name", job.Name)
 		return ctrl.Result{}, err
 	}
 
@@ -159,11 +240,14 @@ func (r *ContractReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		logger.Info("Creating a new Job", "Job.Namespace", job.Namespace, "Job.Name", job.Name)
 		err = r.Create(ctx, job)
 		if err != nil {
+			logger.Error(err, "Failed to create Job")
+			r.Recorder.Error(err, "Failed to create Job", "Job.Name", job.Name)
 			return ctrl.Result{}, err
 		}
 		// Job created successfully - return and requeue
 		return ctrl.Result{Requeue: true}, nil
 	} else if err != nil {
+		logger.Error(err, "Failed to get Job")
 		return ctrl.Result{}, err
 	}
 
