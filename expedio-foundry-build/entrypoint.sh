@@ -16,13 +16,7 @@ else
 fi
 
 # Step 3: Determine the contract name dynamically
-CONTRACT_FILE="src/Contract.sol"
-CONTRACT_NAME=$(grep -oP 'contract \K\w+' "$CONTRACT_FILE")
-
-if [ -z "$CONTRACT_NAME" ]; then
-    echo "Error: No contract name found in $CONTRACT_FILE"
-    exit 1
-fi
+CONTRACT_FILE="src/${CONTRACT_NAME}.sol"
 
 echo "Deploying the contract $CONTRACT_NAME..."
 

@@ -24,7 +24,7 @@ import (
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1" // Import this package
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -141,10 +141,14 @@ func (r *ContractReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	logger.Info("ConfigMap created or updated", "ConfigMap.Name", configMapName)
 
 	// Define the job that will deploy the contract
+	contractFileName := fmt.Sprintf("%s.sol", contract.Spec.ContractName)
+	testFileName := fmt.Sprintf("%s.t.sol", contract.Spec.ContractName)
+
+	// Define the job that will deploy the contract
 	volumeMounts := []corev1.VolumeMount{
 		{
 			Name:      "contract-code",
-			MountPath: "/home/foundryuser/expedio-kontract-deployer/src/Contract.sol",
+			MountPath: fmt.Sprintf("/home/foundryuser/expedio-kontract-deployer/src/%s", contractFileName),
 			SubPath:   "code",
 		},
 	}
@@ -166,7 +170,7 @@ func (r *ContractReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	if contract.Spec.Test != "" {
 		volumeMounts = append(volumeMounts, corev1.VolumeMount{
 			Name:      "contract-tests",
-			MountPath: "/home/foundryuser/expedio-kontract-deployer/test/Contract.t.sol",
+			MountPath: fmt.Sprintf("/home/foundryuser/expedio-kontract-deployer/test/%s", testFileName),
 			SubPath:   "tests",
 		})
 
@@ -206,6 +210,10 @@ func (r *ContractReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 								{
 									Name:  "WALLET_PRV_KEY",
 									Value: string(walletSecret.Data["privateKey"]),
+								},
+								{
+									Name:  "CONTRACT_NAME",
+									Value: contract.Spec.ContractName,
 								},
 							},
 							VolumeMounts: volumeMounts,
