@@ -26,12 +26,13 @@ RUN mkdir -p "$FOUNDRY_DIR/bin" \
 # Add Foundry binaries to the PATH
 ENV PATH="$FOUNDRY_DIR/bin:$PATH"
 
-# Copy the pre-downloaded solc version 0.8.26 to the container
 USER root
-COPY svm/0.8.26 /root/.svm/0.8.26
 
-# Change ownership of the copied files to the non-root user
-RUN chown -R foundryuser:foundrygroup /root/.svm
+# Copy the entrypoint script
+COPY entrypoint.sh /home/foundryuser/entrypoint.sh
+# Ensure the script has execution permissions
+RUN chown -R foundryuser:foundrygroup /home/foundryuser/entrypoint.sh
+RUN chmod u+x /home/foundryuser/entrypoint.sh
 
 # Create the project directory with the correct permissions
 USER foundryuser
@@ -43,5 +44,8 @@ WORKDIR /home/foundryuser/expedio-kontract-deployer
 # Initialize a default Foundry project
 RUN forge init --no-git .
 
+# Clean up unnecessary default files
+RUN rm -rf script/* test/* src/*
+
 # Specify the command to run your project
-CMD ["bash"]
+CMD ["/home/foundryuser/entrypoint.sh"]
