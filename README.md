@@ -123,17 +123,16 @@ classDef mainBox fill:#e0f7fa,stroke:#006064,stroke-width:3px,font-size:24px,col
 **Interaction**: Network resources reference RPCProvider to interact with blockchain networks. The operator uses the secretRef to retrieve the API token and append it to the RPC requests.
 
 ```yaml
-apiVersion: expedio.xyz/v1alpha1
+apiVersion: kontractdeployer.expedio.xyz/v1alpha1
 kind: RPCProvider
 metadata:
-  name: my-rpc-provider
+  name: rpcprovider-sample
 spec:
   providerName: Infura
-  endpoint: <https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID>
   secretRef:
     name: infura-api-secret
-    key: api-token
-  timeout: 5s
+    tokenKey: key
+    urlKey: endpoint
 ```
 
 ### _BlockExplorer_
@@ -145,16 +144,16 @@ spec:
 **Interactions**: The BlockExplorer resource acts as a centralized service for retrieving blockchain data. It is directly referenced by the Network resource, which in turn is referenced by other resources like Contract, Action, and EventHook.
 
 ```yaml
-apiVersion: expedio.xyz/v1alpha1
+apiVersion: kontractdeployer.expedio.xyz/v1alpha1
 kind: BlockExplorer
 metadata:
-  name: etherscan-explorer
+  name: blockexplorer-sample
 spec:
   explorerName: Etherscan
-  endpoint: <https://api.etherscan.io/api>
   secretRef:
     name: etherscan-api-secret
-    key: api-token
+    tokenKey: key
+    urlKey: endpoint
 ```
 
 ### Network
@@ -168,16 +167,17 @@ Ensures secure communication and interaction with the blockchain.
 **Interaction**: Referenced by Contract and Wallet resources to determine the network on which they operate.
 
 ```yaml
-apiVersion: expedio.xyz/v1alpha1
+apiVersion: kontractdeployer.expedio.xyz/v1alpha1
 kind: Network
 metadata:
-  name: ethereum-mainnet
+  name: network-sample
 spec:
-  networkName: EthereumMainnet
-  chainID: 1
-  rpcProviderRef: my-rpc-provider
-  blockExplorerRef: etherscan-explorer
-  gasPriceOracle: <https://gas.oracle.example.com>
+  networkName: holeskyTestnet
+  chainID: 17000
+  rpcProviderRef: 
+    name: rpcprovider-sample
+  blockExplorerRef:
+    name: blockexplorer-sample
 ```
 
 ### Wallet
@@ -191,17 +191,21 @@ Can support multiple wallet types, including externally managed wallets.
 **Interaction**: Referenced by Contract for deploying and interacting with contracts on the blockchain.
 
 ```yaml
-apiVersion: blockchain.io/v1alpha1
+apiVersion: kontractdeployer.expedio.xyz/v1alpha1
 kind: Wallet
 metadata:
-  name: my-wallet
+  labels:
+    app.kubernetes.io/name: kubebuilder
+    app.kubernetes.io/managed-by: kustomize
+  name: wallet-sample
 spec:
   walletType: EOA
-  secretRef: my-wallet-secret
   networkRef: ethereum-mainnet
-  import: true
+  importFrom:
+    secretRef: wallet-sample-wallet-secret
 status:
   publicKey: 0x...
+  secretRef: wallet-sample-wallet-secret
 ```
 
 ### Contract
@@ -213,10 +217,10 @@ status:
 **Interaction**: Depends on Network and Wallet resources to determine where and how the contract is deployed. The ContractProxy resource references the Contract resource when a new implementation is deployed.
 
 ```yaml
-apiVersion: expedio.xyz/v1alpha1
+apiVersion: kontractdeployer.expedio.xyz/v1alpha1
 kind: Contract
 metadata:
-  name: my-smart-contract
+  name: contract-sample
 spec:
   import: false
   contractName: MySmartContract
