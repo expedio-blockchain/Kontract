@@ -1,0 +1,14 @@
+apiVersion: kontractdeployer.expedio.xyz/v1alpha1
+kind: EventHook
+metadata:
+  labels:
+    app.kubernetes.io/name: kubebuilder
+    app.kubernetes.io/managed-by: kustomize
+  name: eventhook-sample
+spec:
+  eventType: BlockMined # Event that triggers the hook (BlockMined, ContractEvent)
+  contractRef: my-smart-contract # Reference to the Contract resource
+  actionRef: test-contract-function # Reference to the Action resource to be triggered
+  filter: # Optional, filter conditions for the event
+    blockNumber: "123456"
+    eventName: "Upgrade"
