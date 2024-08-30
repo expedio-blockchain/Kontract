@@ -26,7 +26,15 @@ fi
 
 echo "Deploying the contract $CONTRACT_NAME..."
 
+# Check if RPC_URL ends with a "/" and add it if not
+if [[ "${RPC_URL}" != */ ]]; then
+    RPC_URL="${RPC_URL}/"
+fi
+
+# Combine the RPC URL and RPC Key
+FULL_RPC_URL="${RPC_URL}${RPC_KEY}"
+
 # Step 4: Deploy the contract
-forge create --rpc-url $RPC_URL --private-key $PRIVATE_KEY "$CONTRACT_FILE:$CONTRACT_NAME"
+forge create --rpc-url "$FULL_RPC_URL" --private-key "$WALLET_PRV_KEY" "$CONTRACT_FILE:$CONTRACT_NAME"
 
 echo "Deployment completed."

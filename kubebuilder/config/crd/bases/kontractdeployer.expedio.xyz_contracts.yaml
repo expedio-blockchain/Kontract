@@ -42,10 +42,6 @@ spec:
               code:
                 description: Code is the source code of the smart contract
                 type: string
-              contractAddress:
-                description: ContractAddress is the address of the contract on the
-                  blockchain
-                type: string
               contractName:
                 description: ContractName is the name of the smart contract
                 type: string
@@ -54,15 +50,23 @@ spec:
                   gas price management
                 type: string
               import:
+                default: false
                 description: Import indicates whether the contract should be imported
                   (true) or deployed (false)
                 type: boolean
+              importContractAddress:
+                description: |-
+                  ImportContractAddress is the address of the contract to be imported
+                  Only required if Import is true
+                type: string
               networkRef:
                 description: NetworkRef references the Network resource where this
                   contract is deployed
                 type: string
               test:
-                description: Test is the source code for testing the smart contract
+                description: |-
+                  Test is the source code for testing the smart contract
+                  Optional
                 type: string
               walletRef:
                 description: WalletRef references the Wallet resource that will sign
@@ -72,9 +76,7 @@ spec:
             - code
             - contractName
             - gasStrategyRef
-            - import
             - networkRef
-            - test
             - walletRef
             type: object
           status:
