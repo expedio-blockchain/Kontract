@@ -1,0 +1,16 @@
+apiVersion: kontractdeployer.expedio.xyz/v1alpha1
+kind: ContractProxy
+metadata:
+  labels:
+    app.kubernetes.io/name: kubebuilder
+    app.kubernetes.io/managed-by: kustomize
+  name: contractproxy-sample
+spec:
+  proxyType: Transparent
+  networkRef: ethereum-mainnet
+  walletRef: my-wallet
+  gasStrategyRef: high-priority-gas
+  implementationRef: my-implementation-contract-v1
+  proxyAdminRef: my-proxy-admin
+status:
+  proxyAddress: 0x...

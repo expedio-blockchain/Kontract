@@ -1,0 +1,13 @@
+## Append samples of your project ##
+resources:
+- kontractdeployer_v1alpha1_rpcprovider.yaml
+- kontractdeployer_v1alpha1_blockexplorer.yaml
+- kontractdeployer_v1alpha1_network.yaml
+- kontractdeployer_v1alpha1_wallet.yaml
+- kontractdeployer_v1alpha1_contract.yaml
+- kontractdeployer_v1alpha1_contractproxy.yaml
+- kontractdeployer_v1alpha1_proxyadmin.yaml
+- kontractdeployer_v1alpha1_action.yaml
+- kontractdeployer_v1alpha1_eventhook.yaml
+- kontractdeployer_v1alpha1_gasstrategy.yaml
+# +kubebuilder:scaffold:manifestskustomizesamples
