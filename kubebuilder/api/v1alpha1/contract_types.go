@@ -23,7 +23,12 @@ import (
 // ContractSpec defines the desired state of Contract
 type ContractSpec struct {
 	// Import indicates whether the contract should be imported (true) or deployed (false)
-	Import bool `json:"import"`
+	// +kubebuilder:default=false
+	Import bool `json:"import,omitempty"`
+
+	// ImportContractAddress is the address of the contract to be imported
+	// Only required if Import is true
+	ImportContractAddress string `json:"importContractAddress,omitempty"`
 
 	// ContractName is the name of the smart contract
 	ContractName string `json:"contractName"`
@@ -37,14 +42,12 @@ type ContractSpec struct {
 	// GasStrategyRef references the GasStrategy resource for gas price management
 	GasStrategyRef string `json:"gasStrategyRef"`
 
-	// ContractAddress is the address of the contract on the blockchain
-	ContractAddress string `json:"contractAddress,omitempty"`
-
 	// Code is the source code of the smart contract
 	Code string `json:"code"`
 
 	// Test is the source code for testing the smart contract
-	Test string `json:"test"`
+	// Optional
+	Test string `json:"test,omitempty"`
 }
 
 // ContractStatus defines the observed state of Contract
