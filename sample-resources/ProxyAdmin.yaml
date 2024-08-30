@@ -1,0 +1,16 @@
+apiVersion: kontractdeployer.expedio.xyz/v1alpha1
+kind: ProxyAdmin
+metadata:
+  labels:
+    app.kubernetes.io/name: kubebuilder
+    app.kubernetes.io/managed-by: kustomize
+  name: proxyadmin-sample
+spec:
+  networkRef: ethereum-mainnet
+  walletRef: my-wallet
+  gasStrategyRef: high-priority-gas
+  adminAddress: 0x...
+status:
+  contractProxyRefs:
+    - name: my-upgradeable-proxy-1
+    - name: my-upgradeable-proxy-2

@@ -1,0 +1,14 @@
+apiVersion: kontractdeployer.expedio.xyz/v1alpha1
+kind: Network
+metadata:
+  labels:
+    app.kubernetes.io/name: kubebuilder
+    app.kubernetes.io/managed-by: kustomize
+  name: network-sample
+spec:
+  networkName: holeskyTestnet
+  chainID: 17000
+  rpcProviderRef: 
+    name: rpcprovider-sample
+  blockExplorerRef:
+    name: blockexplorer-sample
