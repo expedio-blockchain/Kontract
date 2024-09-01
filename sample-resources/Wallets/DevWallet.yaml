@@ -1,0 +1,9 @@
+apiVersion: kontractdeployer.expedio.xyz/v1alpha1
+kind: Wallet
+metadata:
+  name: dev-wallet
+spec:
+  walletType: EOA
+  networkRef: ethereum-mainnet
+  importFrom:
+    secretRef: test-wallet-secret

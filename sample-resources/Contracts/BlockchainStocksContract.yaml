@@ -1,0 +1,357 @@
+apiVersion: kontractdeployer.expedio.xyz/v1alpha1
+kind: Contract
+metadata:
+  name: blockchain-stocks-contract
+spec:
+  contractName: BSP
+  networkRef: holesky
+  walletRef: dev-wallet
+  gasStrategyRef: high-priority-gas
+  externalModules:
+    - "OpenZeppelin/openzeppelin-contracts"
+  code: |
+    // SPDX-License-Identifier: Unlicense
+
+    // Solidity version 0.8.9 or above
+    pragma solidity ^0.8.9;
+
+    // Import modules
+    import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+    import "@openzeppelin/contracts/access/Ownable.sol";
+    import "@openzeppelin/contracts/utils/Pausable.sol";
+    import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
+
+    // ERC1155 contract which is ownable (controlled by admin), and pausable (both mint and transferring)
+    contract BSP is ERC1155, Ownable, Pausable, ERC1155Supply {
+        /*
+            VARIABLES DECLARATION
+        */
+
+        // CONTRACT STATE VARIABLES
+        // Stock UID
+        uint8 public constant Stock = 1;
+        // Max stocks supply
+        uint256 public maxSupply;
+        // Mint price when *not minted by admin*
+        uint256 public mintPrice;
+        // Address to send mint payments to
+        address payable private companyWallet;
+
+        // DIVIDEND SPLITTER VARIABLES
+        // Event about dividend released (to, amount)
+        event DividendReleased(address to, uint256 amount);
+        // Mapping between address and the amount of dividend released
+        mapping(address => uint256) private _dividendReleased;
+        // Total amount of dividend released, used for the releasable calculation
+        uint256 private _totalDividendReleased;
+
+        // Identity Tracking
+        mapping(address => bool) private whitelist;
+
+        // Constructor to initialize the contract with the following attributes:
+        // initURI, initCompanyWallet, initMaxSupply, initMintPrice
+        // All of those are changeable later
+        constructor(
+            string memory initURI,
+            address payable initCompanyWallet,
+            uint256 initMaxSupply,
+            uint256 initMintPrice
+        ) ERC1155(initURI) {
+            setCompanyWallet(initCompanyWallet);
+            setMaxSupply(initMaxSupply);
+            setMintPrice(initMintPrice);
+        }
+
+        /*
+            GETTERS & SETTERS
+        */
+
+        // Change the company wallet
+        function setCompanyWallet(
+            address payable newCompanyWallet
+        ) public onlyOwner {
+            companyWallet = newCompanyWallet;
+        }
+
+        // Change the max supply
+        function setMaxSupply(uint256 newSupply) public onlyOwner {
+            maxSupply = newSupply;
+        }
+
+        // Change mint price
+        function setMintPrice(uint256 newPrice) public onlyOwner {
+            mintPrice = newPrice;
+        }
+
+        // Change the base URI
+        function setURI(string memory newURI) public onlyOwner {
+            _setURI(newURI);
+        }
+
+        /*
+            MINTING
+        */
+
+        // *User* minting stocks function
+        function mintStocks(uint256 amount) public payable {
+            // Validate that the max stocks amount hasn't been reached
+            require(totalSupply(Stock) + amount <= maxSupply, "Max supply reached");
+            // Validate if the token amount sent is equal to or greater than the price
+            require(
+                msg.value >= (amount * mintPrice),
+                "The suggested price doesn't meet the requirement"
+            );
+            // Send paid tokens to the company wallet
+            (bool sent, bytes memory data) = companyWallet.call{value: msg.value}(
+                ""
+            );
+            // Check if tokens received
+            require(sent);
+            // Mint stocks to the requester
+            _mint(msg.sender, Stock, amount, "");
+        }
+
+        // *Admin* minting stocks function
+        function mintStocksAdmin(address account, uint256 amount) public onlyOwner {
+            // Validate that the max stocks amount hasn't been reached
+            require(totalSupply(Stock) + amount <= maxSupply, "Max supply reached");
+            // Mint stocks to the given address
+            _mint(account, Stock, amount, "");
+        }
+
+        /*
+            DEPOSIT & WITHDRAW
+        */
+
+        // Deposit tokens to the contract
+        function deposit() public payable {}
+
+        // Withdraw tokens from the contract to the given address
+        function withdraw(address payable _to, uint256 amountWEI) public onlyOwner {
+            // Require the balance is sufficient
+            require(
+                amountWEI <= address(this).balance,
+                "Insufficient balance in the contract"
+            );
+            // Send tokens to the given address
+            _to.transfer(amountWEI);
+        }
+
+        /*
+            PRE&POST HOOKS
+        */
+
+        // Prehook function running before transfer execution
+        // Blocked when the contract is stopped
+        function _beforeTokenTransfer(
+            address operator,
+            address from,
+            address to,
+            uint256[] memory ids,
+            uint256[] memory amounts,
+            bytes memory data
+        )
+            internal
+            override(ERC1155, ERC1155Supply)
+            whenNotPaused
+        {
+            super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
+            // Block minting and transferring to non-validated addresses
+            require(isInWhitelist(to), "Account not in whitelist");
+        }
+
+        // Posthook function running after transfer execution
+        function _afterTokenTransfer(
+            address operator,
+            address from,
+            address to,
+            uint256[] memory ids,
+            uint256[] memory amounts,
+            bytes memory data
+        ) internal override(ERC1155) {
+            super._afterTokenTransfer(operator, from, to, ids, amounts, data);
+            // Transfer dividend released counter from the sender to the receiver
+            updateDividendReleasedAfterTransfer(from, to, amounts[0]);
+        }
+
+        /*
+            DIVIDEND SPLITTER
+        */
+
+        // Move dividend released values from sender to receiver when transfer occurred
+        function updateDividendReleasedAfterTransfer(
+            address from,
+            address to,
+            uint256 amount
+        ) private {
+            // Tokens already released by the sender
+            uint256 _fromReleased = _dividendReleased[from];
+            // Tokens amount of the sender
+            uint256 _fromBalance = sharesOf(from);
+            if (to == address(0)) // Burning
+            {
+                // How many already released from each token
+                // _relativePart = sender already released amount / total tokens balance
+                uint256 _releasedPerToken = releasedPerToken(
+                    _fromReleased,
+                    _fromBalance,
+                    amount
+                );
+                // Relative part removed from 'from'
+                // sender_dividends_counter = relative part * left amount
+                _dividendReleased[from] = _releasedPerToken * _fromBalance;
+            } else if (from == address(0)) // Minting
+            {
+                // receiver_dividends_counter = 0
+                _dividendReleased[to] = _dividendReleased[to];
+            }
+            // Transferring
+            else {
+                // How many already released from each token
+                // _releasedPerToken = sender already released amount / total tokens balance
+                uint256 _releasedPerToken = releasedPerToken(
+                    _fromReleased,
+                    _fromBalance,
+                    amount
+                );
+                // Relative part removed from 'from'
+                // sender_dividends_counter = relative part * left amount
+                _dividendReleased[from] = (_releasedPerToken) * _fromBalance;
+                // Relative part added to 'to'
+                // receiver_dividends_counter = current value + relative part * sent amount
+                _dividendReleased[to] =
+                    _dividendReleased[to] +
+                    ((_releasedPerToken) * amount);
+            }
+        }
+
+        // Return the already released value for each token
+        function releasedPerToken(
+            uint256 _fromReleased,
+            uint256 _fromBalance,
+            uint256 _amountTransfered
+        ) private pure returns (uint256) {
+            // dividend released / tokens number + 1 (to overcome down rounding)
+            uint256 _releasedPerToken = _fromReleased /
+                (_amountTransfered + _fromBalance) +
+                1;
+            return _releasedPerToken;
+        }
+
+        // Release dividends for the requester
+        function dividendRelease() public virtual {
+            // Get the requester address
+            address payable _account = payable(msg.sender);
+            // Validate the requester owns shares
+            require(
+                sharesOf(_account) > 0,
+                "DividendSplitter: account has no shares"
+            );
+            // Get the releasable amount
+            uint256 payment = releasableDividends(_account);
+            // Validate the payment isn't zero
+            require(payment != 0, "DividendSplitter: account is not due payment");
+
+            // _totalReleased is the sum of all values in _released.
+            // If "_totalReleased += payment" does not overflow, then "_released[account] += payment" cannot overflow.
+            _totalDividendReleased += payment;
+            unchecked {
+                _dividendReleased[_account] += payment;
+            }
+
+            // Send dividends to the account's address
+            _account.transfer(payment);
+            emit DividendReleased(_account, payment);
+        }
+
+        // Get the amount of dividends the account is allowed to pull
+        function releasableDividends(
+            address account
+        ) public view returns (uint256) {
+            // The total amount of tokens needs to be split
+            // Summarize the current balance + the already pulled amount
+            uint256 totalReceived = address(this).balance + totalDividendReleased();
+            // return the calculated releasable amount
+            return
+                _pendingDividendPayment(
+                    account,
+                    totalReceived,
+                    dividendReleased(account)
+                );
+        }
+
+        // Calculate the amount of dividends the account is allowed to pull
+        function _pendingDividendPayment(
+            address account,
+            uint256 totalReceived,
+            uint256 alreadyReleased
+        ) private view returns (uint256) {
+            // Total stocks supply
+            uint256 _totalShares = totalShares();
+            // Shares balance of the account
+            uint256 _accountShares = sharesOf(account);
+            // Validate shares already minted
+            require(_totalShares != 0, "DividendSplitter: No shares yet");
+            // Return the pending payment amount
+            // all splittable dividends * percent of the account own shares out of the total shares
+            uint256 allowedToRelease = (totalReceived * _accountShares) /
+                _totalShares;
+            // allowed to release some amount
+            if (allowedToRelease > alreadyReleased) {
+                // Allowed to release - amount already released
+                uint256 pendingPayment = allowedToRelease - alreadyReleased;
+                return pendingPayment;
+            }
+            // Disallowed to release any amount (might be less than zero because of up rounding in "updateDividendReleasedAfterTransfer")
+            else {
+                return 0;
+            }
+        }
+
+        // Get the amount of dividend already released
+        function dividendReleased(address account) public view returns (uint256) {
+            return _dividendReleased[account];
+        }
+
+        // Get the total amount of dividends already released
+        function totalDividendReleased() public view returns (uint256) {
+            return _totalDividendReleased;
+        }
+
+        // Get the total amount of shares
+        function totalShares() public view returns (uint256) {
+            return totalSupply(Stock);
+        }
+
+        // Get the total amount of shares for a specific account
+        function sharesOf(address account) public view returns (uint256) {
+            // shares of zero address is 0
+            if (account == address(0)) {
+                return 0;
+            }
+            // otherwise return the token balance
+            else {
+                return balanceOf(account, Stock);
+            }
+        }
+
+        /*
+            IDENTITY TRACKING
+        */
+
+        // Add address to whitelist
+        function addToWhitelist(address newAddress) public onlyOwner {
+            whitelist[newAddress] = true;
+        }
+
+        // Check if the given address is in the whitelist or not
+        function isInWhitelist(
+            address addressToValidate
+        ) public view returns (bool) {
+            if (whitelist[addressToValidate]) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }

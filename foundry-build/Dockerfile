@@ -1,6 +1,9 @@
 # Use an ARM-compatible base image
 FROM ubuntu:20.04
 
+# Set environment variable to avoid interactive prompts
+ENV DEBIAN_FRONTEND=noninteractive
+
 # Create a non-root user and group
 RUN groupadd -r foundrygroup && useradd -r -m -g foundrygroup -s /bin/bash foundryuser
 
@@ -10,6 +13,8 @@ RUN apt-get update && apt-get install -y \
     git \
     build-essential \
     libusb-1.0-0-dev \
+    nodejs \
+    npm \
     && rm -rf /var/lib/apt/lists/*
 
 # Set environment variables

@@ -19,6 +19,7 @@ package controller
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/go-logr/logr"
 	batchv1 "k8s.io/api/batch/v1"
@@ -96,16 +97,25 @@ func (r *ContractReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 	logger.Info("Fetching the RPCProvider Secret", "Secret.Name", rpcProvider.Spec.SecretRef.Name)
 
-	// Fetch the Wallet Secret
-	walletSecretName := fmt.Sprintf("%s-wallet-secret", contract.Spec.WalletRef)
-	walletSecret := &corev1.Secret{}
-	err = r.Get(ctx, types.NamespacedName{Name: walletSecretName, Namespace: req.Namespace}, walletSecret)
+	// Fetch the Wallet instance
+	wallet := &kontractdeployerv1alpha1.Wallet{}
+	err = r.Get(ctx, types.NamespacedName{Name: contract.Spec.WalletRef, Namespace: req.Namespace}, wallet)
 	if err != nil {
-		logger.Error(err, "Failed to get Wallet Secret")
-		r.Recorder.Error(err, "Failed to get Wallet Secret", "WalletSecret.Name", walletSecretName)
+		logger.Error(err, "Failed to get Wallet")
+		r.Recorder.Error(err, "Failed to get Wallet", "WalletRef", contract.Spec.WalletRef)
 		return ctrl.Result{}, err
 	}
-	logger.Info("Fetching the Wallet Secret", "WalletSecret.Name", walletSecretName)
+	logger.Info("Fetching the Wallet instance", "Wallet.Name", wallet.Name)
+
+	// Fetch the Wallet Secret
+	walletSecret := &corev1.Secret{}
+	err = r.Get(ctx, types.NamespacedName{Name: wallet.Spec.ImportFrom.SecretRef, Namespace: req.Namespace}, walletSecret)
+	if err != nil {
+		logger.Error(err, "Failed to get Wallet Secret")
+		r.Recorder.Error(err, "Failed to get Wallet Secret", "WalletSecret.Name", wallet.Spec.ImportFrom.SecretRef)
+		return ctrl.Result{}, err
+	}
+	logger.Info("Fetching the Wallet Secret", "WalletSecret.Name", wallet.Spec.ImportFrom.SecretRef)
 
 	// Create a ConfigMap for the contract code and tests
 	configMapName := fmt.Sprintf("%s-contract", contract.Name)
@@ -214,6 +224,14 @@ func (r *ContractReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 								{
 									Name:  "CONTRACT_NAME",
 									Value: contract.Spec.ContractName,
+								},
+								{
+									Name:  "EXTERNAL_MODULES",
+									Value: strings.Join(contract.Spec.ExternalModules, " "),
+								},
+								{
+									Name:  "LOCAL_MODULES",
+									Value: strings.Join(contract.Spec.LocalModules, " "),
 								},
 							},
 							VolumeMounts: volumeMounts,
