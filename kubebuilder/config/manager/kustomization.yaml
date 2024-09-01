@@ -5,4 +5,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: docker.io/expedio/kontract-deployer
-  newTag: 0.0.26
+  newTag: 0.0.29

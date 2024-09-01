@@ -1,0 +1,10 @@
+apiVersion: kontractdeployer.expedio.xyz/v1alpha1
+kind: BlockExplorer
+metadata:
+  name: etherscan
+spec:
+  explorerName: Etherscan
+  secretRef:
+    name: etherscan-api-secret
+    tokenKey: key
+    urlKey: endpoint
