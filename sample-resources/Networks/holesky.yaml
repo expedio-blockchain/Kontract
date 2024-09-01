@@ -1,0 +1,11 @@
+apiVersion: kontractdeployer.expedio.xyz/v1alpha1
+kind: Network
+metadata:
+  name: holesky
+spec:
+  networkName: holesky-testnet
+  chainID: 17000
+  rpcProviderRef: 
+    name: rpcprovider-sample
+  blockExplorerRef:
+    name: blockexplorer-sample
