@@ -45,6 +45,12 @@ spec:
               contractName:
                 description: ContractName is the name of the smart contract
                 type: string
+              externalModules:
+                description: ExternalModules is a list of external modules to be imported
+                  via npm
+                items:
+                  type: string
+                type: array
               gasStrategyRef:
                 description: GasStrategyRef references the GasStrategy resource for
                   gas price management
@@ -59,6 +65,12 @@ spec:
                   ImportContractAddress is the address of the contract to be imported
                   Only required if Import is true
                 type: string
+              localModules:
+                description: LocalModules is a list of local modules to be imported
+                  from ConfigMap
+                items:
+                  type: string
+                type: array
               networkRef:
                 description: NetworkRef references the Network resource where this
                   contract is deployed

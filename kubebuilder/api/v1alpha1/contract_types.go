@@ -42,6 +42,12 @@ type ContractSpec struct {
 	// GasStrategyRef references the GasStrategy resource for gas price management
 	GasStrategyRef string `json:"gasStrategyRef"`
 
+	// ExternalModules is a list of external modules to be imported via npm
+	ExternalModules []string `json:"externalModules,omitempty"`
+
+	// LocalModules is a list of local modules to be imported from ConfigMap
+	LocalModules []string `json:"localModules,omitempty"`
+
 	// Code is the source code of the smart contract
 	Code string `json:"code"`
 
