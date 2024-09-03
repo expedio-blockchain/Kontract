@@ -18,6 +18,7 @@ package controller
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -243,6 +244,19 @@ func (r *ContractReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			},
 		},
 	}
+
+	// Convert InitParams to JSON
+	initParamsJSON, err := json.Marshal(contract.Spec.InitParams)
+	if err != nil {
+		logger.Error(err, "Failed to marshal InitParams to JSON")
+		return ctrl.Result{}, err
+	}
+
+	// Add InitParams JSON to the job environment variables
+	job.Spec.Template.Spec.Containers[0].Env = append(job.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
+		Name:  "INIT_PARAMS",
+		Value: string(initParamsJSON),
+	})
 
 	// Set Contract instance as the owner and controller of the Job
 	if err := controllerutil.SetControllerReference(contract, job, r.Scheme); err != nil {
