@@ -65,6 +65,12 @@ spec:
                   ImportContractAddress is the address of the contract to be imported
                   Only required if Import is true
                 type: string
+              initParams:
+                description: InitParams is a list of initialization parameters for
+                  the contract
+                items:
+                  type: string
+                type: array
               localModules:
                 description: LocalModules is a list of local modules to be imported
                   from ConfigMap
