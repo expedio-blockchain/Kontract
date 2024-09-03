@@ -75,7 +75,14 @@ spec:
                 description: LocalModules is a list of local modules to be imported
                   from ConfigMap
                 items:
-                  type: string
+                  description: ConfigMapReference defines a reference to a ConfigMap
+                  properties:
+                    name:
+                      description: Name of the ConfigMap
+                      type: string
+                  required:
+                  - name
+                  type: object
                 type: array
               networkRef:
                 description: NetworkRef references the Network resource where this

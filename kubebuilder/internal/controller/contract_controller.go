@@ -197,6 +197,40 @@ func (r *ContractReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		})
 	}
 
+	// Fetch and mount ConfigMaps for LocalModules
+	localModuleNames := []string{}
+	for _, module := range contract.Spec.LocalModules {
+		configMapName := module.Name
+		localModuleNames = append(localModuleNames, configMapName)
+		configMap := &corev1.ConfigMap{}
+		err = r.Get(ctx, types.NamespacedName{Name: configMapName, Namespace: req.Namespace}, configMap)
+		if err != nil {
+			logger.Error(err, "Failed to get LocalModule ConfigMap", "ConfigMap.Name", configMapName)
+			r.Recorder.Error(err, "Failed to get LocalModule ConfigMap", "ConfigMap.Name", configMapName)
+			return ctrl.Result{}, err
+		}
+		logger.Info("Fetching the LocalModule ConfigMap", "ConfigMap.Name", configMapName)
+
+		for key := range configMap.Data {
+			volumeMounts = append(volumeMounts, corev1.VolumeMount{
+				Name:      configMapName,
+				MountPath: fmt.Sprintf("/home/foundryuser/expedio-kontract-deployer/src/%s/%s", configMapName, key),
+				SubPath:   key,
+			})
+		}
+
+		volumes = append(volumes, corev1.Volume{
+			Name: configMapName,
+			VolumeSource: corev1.VolumeSource{
+				ConfigMap: &corev1.ConfigMapVolumeSource{
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: configMapName,
+					},
+				},
+			},
+		})
+	}
+
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("contract-deploy-%s", contract.Name),
@@ -253,7 +287,7 @@ func (r *ContractReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 								},
 								{
 									Name:  "LOCAL_MODULES",
-									Value: strings.Join(contract.Spec.LocalModules, " "),
+									Value: strings.Join(localModuleNames, " "),
 								},
 							},
 							VolumeMounts: volumeMounts,
