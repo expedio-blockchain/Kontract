@@ -20,6 +20,12 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// ConfigMapReference defines a reference to a ConfigMap
+type ConfigMapReference struct {
+	// Name of the ConfigMap
+	Name string `json:"name"`
+}
+
 // ContractSpec defines the desired state of Contract
 type ContractSpec struct {
 	// Import indicates whether the contract should be imported (true) or deployed (false)
@@ -46,7 +52,7 @@ type ContractSpec struct {
 	ExternalModules []string `json:"externalModules,omitempty"`
 
 	// LocalModules is a list of local modules to be imported from ConfigMap
-	LocalModules []string `json:"localModules,omitempty"`
+	LocalModules []ConfigMapReference `json:"localModules,omitempty"`
 
 	// Code is the source code of the smart contract
 	Code string `json:"code"`
