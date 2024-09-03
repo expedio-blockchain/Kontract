@@ -54,6 +54,9 @@ type ContractSpec struct {
 	// Test is the source code for testing the smart contract
 	// Optional
 	Test string `json:"test,omitempty"`
+
+	// InitParams is a list of initialization parameters for the contract
+	InitParams []string `json:"initParams,omitempty"`
 }
 
 // ContractStatus defines the observed state of Contract
