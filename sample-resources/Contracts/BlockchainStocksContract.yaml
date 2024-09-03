@@ -7,6 +7,11 @@ spec:
   networkRef: holesky
   walletRef: dev-wallet
   gasStrategyRef: high-priority-gas
+  initParams:
+    - "https://example.com/metadata"
+    - "0x1234567890abcdef1234567890abcdef12345678"
+    - "100000"
+    - "1000000000000000000"
   externalModules:
     - "OpenZeppelin/openzeppelin-contracts@v4.8.2"
   code: |
@@ -102,7 +107,7 @@ spec:
                 "The suggested price doesn't meet the requirement"
             );
             // Send paid tokens to the company wallet
-            (bool sent, bytes memory data) = companyWallet.call{value: msg.value}(
+            (bool sent,) = companyWallet.call{value: msg.value}(
                 ""
             );
             // Check if tokens received
