@@ -25,19 +25,8 @@ if [ -n "$EXTERNAL_MODULES" ]; then
     print_separator
 fi
 
-# Copy local modules from ConfigMap
-if [ -n "$LOCAL_MODULES" ]; then
-    print_separator
-    log "Copying local modules..."
-    for module in $LOCAL_MODULES; do
-        cp -r "/config/$module" "/home/foundryuser/expedio-kontract-deployer/src/$module"
-    done
-    print_separator
-fi
-
 # Parse INIT_PARAMS JSON
 PARAMS=$(echo $INIT_PARAMS | jq -r 'join(" ")')
-print_separator
 log "Init Params: $PARAMS"
 print_separator
 
