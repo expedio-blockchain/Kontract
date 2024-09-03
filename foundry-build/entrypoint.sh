@@ -3,40 +3,63 @@
 # Exit immediately if a command exits with a non-zero status
 set -e
 
-# Step 1: Install the external modules
+# Function to print a separator
+print_separator() {
+    echo "========================================"
+}
+
+# Function to print a log message with a timestamp
+log() {
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1"
+}
+
+# Install the external modules
 if [ -n "$EXTERNAL_MODULES" ]; then
-    echo "Installing external modules: $EXTERNAL_MODULES"
+    print_separator
+    log "Installing external modules: $EXTERNAL_MODULES"
     for module in $EXTERNAL_MODULES; do
-        echo "Installing $module..."
-        echo "forge install --no-commit --no-git "$module""
+        log "Installing $module..."
+        log "forge install --no-commit --no-git $module"
         forge install --no-commit --no-git "$module"
     done
+    print_separator
 fi
 
-# Step 2: Copy local modules from ConfigMap
+# Copy local modules from ConfigMap
 if [ -n "$LOCAL_MODULES" ]; then
-    echo "Copying local modules..."
+    print_separator
+    log "Copying local modules..."
     for module in $LOCAL_MODULES; do
         cp -r "/config/$module" "/home/foundryuser/expedio-kontract-deployer/src/$module"
     done
+    print_separator
 fi
 
-# Step 3: Build the contract
-echo "Building the contract..."
-forge build
+# Parse INIT_PARAMS JSON
+PARAMS=$(echo $INIT_PARAMS | jq -r 'join(" ")')
+print_separator
+log "Init Params: $PARAMS"
+print_separator
 
-# Step 4: Check for test files and run tests if any exist
+# Build the contract
+log "Building the contract..."
+forge build
+print_separator
+
+# Check for test files and run tests if any exist
 if ls test/*.sol 1> /dev/null 2>&1; then
-    echo "Running tests..."
+    log "Running tests..."
     forge test
 else
-    echo "No tests found, skipping..."
+    log "No tests found, skipping..."
 fi
+print_separator
 
-# Step 5: Determine the contract name dynamically
+# Determine the contract name dynamically
 CONTRACT_FILE="src/${CONTRACT_NAME}.sol"
 
-echo "Deploying the contract $CONTRACT_NAME..."
+log "Deploying the contract $CONTRACT_NAME..."
+print_separator
 
 # Check if RPC_URL ends with a "/" and add it if not
 if [[ "${RPC_URL}" != */ ]]; then
@@ -46,7 +69,15 @@ fi
 # Combine the RPC URL and RPC Key
 FULL_RPC_URL="${RPC_URL}${RPC_KEY}"
 
-# Step 6: Deploy the contract
-forge create --rpc-url "$FULL_RPC_URL" --private-key "$WALLET_PRV_KEY" "$CONTRACT_FILE:$CONTRACT_NAME"
+# Deploy the contract
+if [ -n "$PARAMS" ]; then
+    log "forge create $CONTRACT_FILE:$CONTRACT_NAME --rpc-url $FULL_RPC_URL --private-key $WALLET_PRV_KEY --constructor-args $PARAMS"
+    forge create "$CONTRACT_FILE:$CONTRACT_NAME" --rpc-url "$FULL_RPC_URL" --private-key "$WALLET_PRV_KEY" --constructor-args $PARAMS
+else
+    log "forge create $CONTRACT_FILE:$CONTRACT_NAME --rpc-url $FULL_RPC_URL --private-key $WALLET_PRV_KEY"
+    forge create "$CONTRACT_FILE:$CONTRACT_NAME" --rpc-url "$FULL_RPC_URL" --private-key "$WALLET_PRV_KEY"
+fi
 
-echo "Deployment completed."
+print_separator
+log "Deployment completed."
+print_separator
