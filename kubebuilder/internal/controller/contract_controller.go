@@ -211,16 +211,37 @@ func (r *ContractReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 							Image: "docker.io/expedio/foundry:latest",
 							Env: []corev1.EnvVar{
 								{
-									Name:  "RPC_URL",
-									Value: string(rpcProviderSecret.Data[rpcProvider.Spec.SecretRef.URLKey]),
+									Name: "RPC_URL",
+									ValueFrom: &corev1.EnvVarSource{
+										SecretKeyRef: &corev1.SecretKeySelector{
+											LocalObjectReference: corev1.LocalObjectReference{
+												Name: rpcProvider.Spec.SecretRef.Name,
+											},
+											Key: rpcProvider.Spec.SecretRef.URLKey,
+										},
+									},
 								},
 								{
-									Name:  "RPC_KEY",
-									Value: string(rpcProviderSecret.Data[rpcProvider.Spec.SecretRef.TokenKey]),
+									Name: "RPC_KEY",
+									ValueFrom: &corev1.EnvVarSource{
+										SecretKeyRef: &corev1.SecretKeySelector{
+											LocalObjectReference: corev1.LocalObjectReference{
+												Name: rpcProvider.Spec.SecretRef.Name,
+											},
+											Key: rpcProvider.Spec.SecretRef.TokenKey,
+										},
+									},
 								},
 								{
-									Name:  "WALLET_PRV_KEY",
-									Value: string(walletSecret.Data["privateKey"]),
+									Name: "WALLET_PRV_KEY",
+									ValueFrom: &corev1.EnvVarSource{
+										SecretKeyRef: &corev1.SecretKeySelector{
+											LocalObjectReference: corev1.LocalObjectReference{
+												Name: wallet.Spec.ImportFrom.SecretRef,
+											},
+											Key: "privateKey",
+										},
+									},
 								},
 								{
 									Name:  "CONTRACT_NAME",
