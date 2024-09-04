@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -146,6 +147,7 @@ func (r *ContractVersionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	contractFileName := fmt.Sprintf("%s.sol", contractVersion.Spec.ContractName)
 	testFileName := fmt.Sprintf("%s.t.sol", contractVersion.Spec.ContractName)
 
+	// Define the job that will deploy the contract
 	volumeMounts := []corev1.VolumeMount{
 		{
 			Name:      "contract-code",
@@ -326,9 +328,26 @@ func (r *ContractVersionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		return ctrl.Result{}, err
 	}
 
-	// Job already exists - don't requeue
-	logger.Info("Skip reconcile: Job already exists", "Job.Namespace", found.Namespace, "Job.Name", found.Name)
-	return ctrl.Result{}, nil
+	// Job already exists - check its status
+	if found.Status.Succeeded > 0 {
+		// Job succeeded, update the ContractVersion status
+		contractVersion.Status.DeploymentTime = metav1.Now()
+		contractVersion.Status.State = "deployed"
+		if err := r.Status().Update(ctx, contractVersion); err != nil {
+			logger.Error(err, "Failed to update ContractVersion status")
+			return ctrl.Result{}, err
+		}
+	} else if found.Status.Failed > 0 {
+		// Job failed, update the ContractVersion status
+		contractVersion.Status.State = "failed"
+		if err := r.Status().Update(ctx, contractVersion); err != nil {
+			logger.Error(err, "Failed to update ContractVersion status")
+			return ctrl.Result{}, err
+		}
+	}
+
+	// Job is still running or pending - requeue
+	return ctrl.Result{RequeueAfter: 10 * time.Second}, nil
 }
 
 // createOrUpdateConfigMap creates or updates a ConfigMap
