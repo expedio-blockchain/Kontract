@@ -10,4 +10,5 @@ resources:
 - kontractdeployer_v1alpha1_action.yaml
 - kontractdeployer_v1alpha1_eventhook.yaml
 - kontractdeployer_v1alpha1_gasstrategy.yaml
+- kontractdeployer_v1alpha1_contractversion.yaml
 # +kubebuilder:scaffold:manifestskustomizesamples

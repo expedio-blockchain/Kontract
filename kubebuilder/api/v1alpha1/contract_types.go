@@ -81,6 +81,9 @@ type ContractStatus struct {
 
 	// State represents the current state of the contract (e.g., deployed, failed)
 	State string `json:"state,omitempty"`
+
+	// CurrentVersion is the current version of the contract
+	CurrentVersion string `json:"currentVersion,omitempty"`
 }
 
 // +kubebuilder:object:root=true
