@@ -52,6 +52,7 @@ rules:
   - blockexplorers
   - contractproxies
   - contracts
+  - contractversions
   - eventhooks
   - gasstrategies
   - networks
@@ -73,6 +74,7 @@ rules:
   - blockexplorers/finalizers
   - contractproxies/finalizers
   - contracts/finalizers
+  - contractversions/finalizers
   - eventhooks/finalizers
   - gasstrategies/finalizers
   - networks/finalizers
@@ -88,6 +90,7 @@ rules:
   - blockexplorers/status
   - contractproxies/status
   - contracts/status
+  - contractversions/status
   - eventhooks/status
   - gasstrategies/status
   - networks/status
