@@ -1,19 +1,20 @@
+---
 apiVersion: v1
 stringData:
-  endpoint: https://holesky.infura.io/v3/
+  endpoint: https://polygon-amoy.infura.io/v3/
   key: 39f7931f744743f9ace2da189784de4b
 kind: Secret
 metadata:
-  name: infura-holesky-api-secret
+  name: infura-amoy-api-secret
 type: Opaque
 ---
 apiVersion: kontractdeployer.expedio.xyz/v1alpha1
 kind: RPCProvider
 metadata:
-  name: infura-holesky
+  name: infura-amoy
 spec:
   providerName: Infura
   secretRef:
-    name: infura-holesky-api-secret
+    name: infura-amoy-api-secret
     tokenKey: key
     urlKey: endpoint
