@@ -6,6 +6,6 @@ spec:
   networkName: holesky-testnet
   chainID: 17000
   rpcProviderRef: 
-    name: rpcprovider-sample
+    name: infura-holesky
   blockExplorerRef:
-    name: blockexplorer-sample
+    name: etherscan-block-explorer

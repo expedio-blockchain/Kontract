@@ -2,19 +2,19 @@
 apiVersion: v1
 kind: Secret
 metadata:
-  name: etherscan-api-secret
+  name: polygonscan-api-secret
 type: Opaque
 stringData:
   key: ***REMOVED***
-  endpoint: https://api.etherscan.io/api
+  endpoint: https://api-amoy.polygonscan.com/api
 ---
 apiVersion: kontractdeployer.expedio.xyz/v1alpha1
 kind: BlockExplorer
 metadata:
-  name: etherscan-block-explorer
+  name: polygonscan-block-explorer
 spec:
-  explorerName: etherscan
+  explorerName: polygonscan
   secretRef:
-    name: etherscan-api-secret
+    name: polygonscan-api-secret
     tokenKey: key
     urlKey: endpoint
