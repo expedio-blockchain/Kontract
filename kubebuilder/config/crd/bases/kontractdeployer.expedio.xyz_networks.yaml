@@ -78,7 +78,6 @@ spec:
                 type: object
                 x-kubernetes-map-type: atomic
             required:
-            - blockExplorerRef
             - chainID
             - networkName
             - rpcProviderRef

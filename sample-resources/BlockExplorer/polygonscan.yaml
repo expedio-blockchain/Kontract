@@ -1,13 +1,4 @@
 ---
-apiVersion: v1
-kind: Secret
-metadata:
-  name: polygonscan-api-secret
-type: Opaque
-stringData:
-  key: ***REMOVED***
-  endpoint: https://api-amoy.polygonscan.com/api
----
 apiVersion: kontractdeployer.expedio.xyz/v1alpha1
 kind: BlockExplorer
 metadata:
@@ -18,3 +9,13 @@ spec:
     name: polygonscan-api-secret
     tokenKey: key
     urlKey: endpoint
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: polygonscan-api-secret
+type: Opaque
+stringData:
+  key: ***REMOVED***
+  endpoint: https://api-amoy.polygonscan.com/api

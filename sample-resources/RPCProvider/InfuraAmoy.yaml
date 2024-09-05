@@ -1,13 +1,4 @@
 ---
-apiVersion: v1
-stringData:
-  endpoint: https://polygon-amoy.infura.io/v3/
-  key: ***REMOVED***
-kind: Secret
-metadata:
-  name: infura-amoy-api-secret
-type: Opaque
----
 apiVersion: kontractdeployer.expedio.xyz/v1alpha1
 kind: RPCProvider
 metadata:
@@ -18,3 +9,13 @@ spec:
     name: infura-amoy-api-secret
     tokenKey: key
     urlKey: endpoint
+
+---
+apiVersion: v1
+stringData:
+  endpoint: https://polygon-amoy.infura.io/v3/
+  key: ***REMOVED***
+kind: Secret
+metadata:
+  name: infura-amoy-api-secret
+type: Opaque

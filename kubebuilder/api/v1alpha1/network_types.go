@@ -33,7 +33,8 @@ type NetworkSpec struct {
 	RPCProviderRef corev1.LocalObjectReference `json:"rpcProviderRef"`
 
 	// BlockExplorerRef references the BlockExplorer resource to be used for querying blockchain data
-	BlockExplorerRef corev1.LocalObjectReference `json:"blockExplorerRef"`
+	// +optional
+	BlockExplorerRef *corev1.LocalObjectReference `json:"blockExplorerRef,omitempty"`
 }
 
 // NetworkStatus defines the observed state of Network
@@ -42,6 +43,7 @@ type NetworkStatus struct {
 	RPCEndpoint string `json:"rpcEndpoint,omitempty"`
 
 	// BlockExplorerEndpoint is the endpoint URL for the Block Explorer
+	// +optional
 	BlockExplorerEndpoint string `json:"blockExplorerEndpoint,omitempty"`
 
 	// Healthy indicates whether the network is healthy
