@@ -3,7 +3,7 @@ kind: Contract
 metadata:
   name: simple-contract
 spec:
-  contractName: MySmartContract
+  contractName: SimpleContract
   networkRefs:
    - network-sample
   walletRef: wallet-sample
@@ -11,7 +11,7 @@ spec:
   code: |
     // SPDX-License-Identifier: MIT
     pragma solidity ^0.8.0;
-    contract MySmartContract {
+    contract SimpleContract {
       uint256 public value;
       function setValue(uint256 newValue) public {
         value = newValue;
@@ -20,11 +20,11 @@ spec:
   test: |
     // SPDX-License-Identifier: MIT
     pragma solidity ^0.8.0;
-    import "src/MySmartContract.sol";
-    contract MySmartContractTest {
-      MySmartContract myContract;
+    import "src/SimpleContract.sol";
+    contract SimpleContractTest {
+      SimpleContract myContract;
       function setUp() public {
-        myContract = new MySmartContract();
+        myContract = new SimpleContract();
       }
       function testInitialValue() public {
         myContract.setValue(1);
