@@ -1,13 +1,11 @@
 apiVersion: kontractdeployer.expedio.xyz/v1alpha1
 kind: Contract
 metadata:
-  labels:
-    app.kubernetes.io/name: kubebuilder
-    app.kubernetes.io/managed-by: kustomize
   name: contract-sample
 spec:
   contractName: MySmartContract
-  networkRef: network-sample
+  networkRefs:
+   - network-sample
   walletRef: wallet-sample
   gasStrategyRef: high-priority-gas
   code: |
@@ -32,9 +30,3 @@ spec:
         myContract.setValue(1);
       }
     }
-status:
-  contractAddress: 0x...
-  deploymentTime: 2024-09-01T00:00:00Z
-  transactionHash: 0x...
-  test: passed
-  state: deployed

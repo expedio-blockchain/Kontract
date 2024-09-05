@@ -13,6 +13,6 @@ spec:
   blockExplorerRef:
     name: blockexplorer-sample
 status:
-  RPCEndpoint: <rpc-provider-url>
-  BlockExplorerEndpoint: <block-explorer-endpoint>
+  rpcEndpoint: <rpc-provider-url>
+  blockExplorerEndpoint: <block-explorer-endpoint>
   healthy: true

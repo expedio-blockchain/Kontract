@@ -39,8 +39,8 @@ type ContractSpec struct {
 	// ContractName is the name of the smart contract
 	ContractName string `json:"contractName"`
 
-	// NetworkRef references the Network resource where this contract is deployed
-	NetworkRef string `json:"networkRef"`
+	// NetworkRefs references the Network resources where this contract is deployed
+	NetworkRefs []string `json:"networkRefs"`
 
 	// WalletRef references the Wallet resource that will sign transactions
 	WalletRef string `json:"walletRef"`

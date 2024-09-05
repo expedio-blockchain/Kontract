@@ -1,0 +1,20 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: polygonscan-api-secret
+type: Opaque
+stringData:
+  key: JPQVDIHTK38P7XENSAGM7935Z3GJ3M15A9
+  endpoint: https://api-amoy.polygonscan.com/api
+---
+apiVersion: kontractdeployer.expedio.xyz/v1alpha1
+kind: BlockExplorer
+metadata:
+  name: polygonscan-block-explorer
+spec:
+  explorerName: polygonscan
+  secretRef:
+    name: polygonscan-api-secret
+    tokenKey: key
+    urlKey: endpoint
