@@ -25,8 +25,12 @@ if [ -n "$EXTERNAL_MODULES" ]; then
     print_separator
 fi
 
-# Parse INIT_PARAMS JSON
-PARAMS=$(echo $INIT_PARAMS | jq -r 'join(" ")')
+# Parse INIT_PARAMS JSON if it is not empty or null
+if [ -n "$INIT_PARAMS" ]; then
+    PARAMS=$(echo $INIT_PARAMS | jq -r 'join(" ")')
+else
+    PARAMS=""
+fi
 log "Init Params: $PARAMS"
 print_separator
 
@@ -58,15 +62,37 @@ fi
 # Combine the RPC URL and RPC Key
 FULL_RPC_URL="${RPC_URL}${RPC_KEY}"
 
-# Deploy the contract
+# Deploy the contract and capture the deployed address
+DEPLOY_OUTPUT_FILE=$(mktemp)
 if [ -n "$PARAMS" ]; then
-    log "forge create $CONTRACT_FILE:$CONTRACT_NAME --rpc-url $FULL_RPC_URL --private-key $WALLET_PRV_KEY --constructor-args $PARAMS"
-    forge create "$CONTRACT_FILE:$CONTRACT_NAME" --rpc-url "$FULL_RPC_URL" --private-key "$WALLET_PRV_KEY" --constructor-args $PARAMS
+    log "forge create $CONTRACT_FILE:$CONTRACT_NAME --rpc-url $FULL_RPC_URL --private-key ************ --constructor-args $PARAMS"
+    forge create "$CONTRACT_FILE:$CONTRACT_NAME" --rpc-url "$FULL_RPC_URL" --private-key "$WALLET_PRV_KEY" --constructor-args $PARAMS | tee "$DEPLOY_OUTPUT_FILE"
 else
-    log "forge create $CONTRACT_FILE:$CONTRACT_NAME --rpc-url $FULL_RPC_URL --private-key $WALLET_PRV_KEY"
-    forge create "$CONTRACT_FILE:$CONTRACT_NAME" --rpc-url "$FULL_RPC_URL" --private-key "$WALLET_PRV_KEY"
+    log "forge create $CONTRACT_FILE:$CONTRACT_NAME --rpc-url $FULL_RPC_URL --private-key ************"
+    forge create "$CONTRACT_FILE:$CONTRACT_NAME" --rpc-url "$FULL_RPC_URL" --private-key "$WALLET_PRV_KEY" | tee "$DEPLOY_OUTPUT_FILE"
 fi
 
+# Extract the deployed contract address from the output
+CONTRACT_ADDRESS=$(grep -oP 'Deployed to: \K(0x[a-fA-F0-9]{40})' "$DEPLOY_OUTPUT_FILE")
+
 print_separator
-log "Deployment completed."
+log "Deployment completed. Contract Address: $CONTRACT_ADDRESS"
 print_separator
+
+# Verify the contract if BlockExplorer details are provided
+if [ -n "$ETHERSCAN_API_KEY" ]; then
+    log "Verifying the contract on BlockExplorer..."
+    if [ -n "$PARAMS" ]; then
+        echo "$PARAMS" > ./params.txt
+        log "forge verify-contract $CONTRACT_ADDRESS $CONTRACT_NAME --chain-id $CHAIN_ID --constructor-args-path ./params.txt"
+        forge verify-contract $CONTRACT_ADDRESS $CONTRACT_NAME --chain-id $CHAIN_ID --constructor-args-path ./params.txt
+    else
+        log "forge verify-contract $CONTRACT_ADDRESS $CONTRACT_NAME --chain-id $CHAIN_ID"
+        forge verify-contract $CONTRACT_ADDRESS $CONTRACT_NAME --chain-id $CHAIN_ID
+    fi
+    print_separator
+    log "Contract verification completed."
+    print_separator
+else
+    log "BlockExplorer details not provided, skipping verification."
+fi

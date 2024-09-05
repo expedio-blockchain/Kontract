@@ -1,3 +1,140 @@
+---
+apiVersion: kontractdeployer.expedio.xyz/v1alpha1
+kind: Contract
+metadata:
+  name: blockchain-stocks-contract
+spec:
+  contractName: BSP
+  networkRefs:
+    - holesky
+    - amoy
+  walletRef: dev-wallet
+  gasStrategyRef: high-priority-gas
+  initParams:
+    - "https://example.com/metadata"
+    - "0x1234567890abcdef1234567890abcdef12345678"
+    - "100000"
+    - "1000000000000000000"
+  externalModules:
+    - "OpenZeppelin/openzeppelin-contracts@v4.8.2"
+  localModules:
+    - name: dividend
+  code: |
+    // SPDX-License-Identifier: Unlicense
+
+    pragma solidity ^0.8.9;
+
+    import "lib/openzeppelin-contracts/contracts/token/ERC1155/ERC1155.sol";
+    import "lib/openzeppelin-contracts/contracts/access/Ownable.sol";
+    import "lib/openzeppelin-contracts/contracts/security/Pausable.sol";
+    import "lib/openzeppelin-contracts/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
+    import "src/dividend/Dividend.sol";
+
+    contract BSP is ERC1155, Ownable, Pausable, ERC1155Supply, Dividend {
+
+        uint8 public constant Stock = 1;
+        uint256 public maxSupply;
+        uint256 public mintPrice;
+        address payable private companyWallet;
+
+        mapping(address => bool) private whitelist;
+
+        constructor(
+            string memory initURI,
+            address payable initCompanyWallet,
+            uint256 initMaxSupply,
+            uint256 initMintPrice
+        ) ERC1155(initURI) {
+            setCompanyWallet(initCompanyWallet);
+            setMaxSupply(initMaxSupply);
+            setMintPrice(initMintPrice);
+        }
+
+        function setCompanyWallet(address payable newCompanyWallet) public onlyOwner {
+            companyWallet = newCompanyWallet;
+        }
+
+        function getCompanyWallet() public view returns (address payable) {
+            return companyWallet;
+        }
+
+        function setMaxSupply(uint256 newMaxSupply) public onlyOwner {
+            maxSupply = newMaxSupply;
+        }
+
+        function getMaxSupply() public view returns (uint256) {
+            return maxSupply;
+        }
+
+        function setMintPrice(uint256 newMintPrice) public onlyOwner {
+            mintPrice = newMintPrice;
+        }
+
+        function getMintPrice() public view returns (uint256) {
+            return mintPrice;
+        }
+
+        function mintStocks(uint256 amount) public payable {
+            require(amount > 0, "Amount must be greater than zero");
+            require(totalSupply(Stock) + amount <= maxSupply, "Exceeds max supply");
+            require(msg.value >= mintPrice * amount, "Insufficient payment");
+
+            _mint(msg.sender, Stock, amount, "");
+            companyWallet.transfer(msg.value);
+        }
+
+        function totalShares() public view override returns (uint256) {
+            return totalSupply(Stock);
+        }
+
+        function sharesOf(address account) public view override returns (uint256) {
+            return balanceOf(account, Stock);
+        }
+
+        function addToWhitelist(address newAddress) public onlyOwner {
+            whitelist[newAddress] = true;
+        }
+
+        function isInWhitelist(
+            address addressToValidate
+        ) public view returns (bool) {
+            if (whitelist[addressToValidate]) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        function _beforeTokenTransfer(
+            address operator,
+            address from,
+            address to,
+            uint256[] memory ids,
+            uint256[] memory amounts,
+            bytes memory data
+        )
+            internal
+            override(ERC1155, ERC1155Supply)
+            whenNotPaused
+        {
+            super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
+            require(isInWhitelist(to), "Account not in whitelist");
+        }
+
+        function _afterTokenTransfer(
+            address operator,
+            address from,
+            address to,
+            uint256[] memory ids,
+            uint256[] memory amounts,
+            bytes memory data
+        ) internal override(ERC1155) {
+            super._afterTokenTransfer(operator, from, to, ids, amounts, data);
+            updateDividendReleasedAfterTransfer(from, to, amounts[0]);
+        }
+    }
+
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -115,140 +252,4 @@ data:
         function totalShares() public view virtual returns (uint256);
 
         function sharesOf(address account) public view virtual returns (uint256);
-    }
-
----
-apiVersion: kontractdeployer.expedio.xyz/v1alpha1
-kind: Contract
-metadata:
-  name: blockchain-stocks-contract
-spec:
-  contractName: BSP
-  networkRefs:
-    - holesky
-    - amoy
-  walletRef: dev-wallet
-  gasStrategyRef: high-priority-gas
-  initParams:
-    - "https://example.com/metadata"
-    - "0x1234567890abcdef1234567890abcdef12345678"
-    - "100000"
-    - "1000000000000000000"
-  externalModules:
-    - "OpenZeppelin/openzeppelin-contracts@v4.8.3"
-  localModules:
-    - name: dividend
-  code: |
-    // SPDX-License-Identifier: Unlicense
-
-    pragma solidity ^0.8.9;
-
-    import "lib/openzeppelin-contracts/contracts/token/ERC1155/ERC1155.sol";
-    import "lib/openzeppelin-contracts/contracts/access/Ownable.sol";
-    import "lib/openzeppelin-contracts/contracts/security/Pausable.sol";
-    import "lib/openzeppelin-contracts/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
-    import "src/dividend/Dividend.sol";
-
-    contract BSP is ERC1155, Ownable, Pausable, ERC1155Supply, Dividend {
-
-        uint8 public constant Stock = 1;
-        uint256 public maxSupply;
-        uint256 public mintPrice;
-        address payable private companyWallet;
-
-        mapping(address => bool) private whitelist;
-
-        constructor(
-            string memory initURI,
-            address payable initCompanyWallet,
-            uint256 initMaxSupply,
-            uint256 initMintPrice
-        ) ERC1155(initURI) {
-            setCompanyWallet(initCompanyWallet);
-            setMaxSupply(initMaxSupply);
-            setMintPrice(initMintPrice);
-        }
-
-        function setCompanyWallet(address payable newCompanyWallet) public onlyOwner {
-            companyWallet = newCompanyWallet;
-        }
-
-        function getCompanyWallet() public view returns (address payable) {
-            return companyWallet;
-        }
-
-        function setMaxSupply(uint256 newMaxSupply) public onlyOwner {
-            maxSupply = newMaxSupply;
-        }
-
-        function getMaxSupply() public view returns (uint256) {
-            return maxSupply;
-        }
-
-        function setMintPrice(uint256 newMintPrice) public onlyOwner {
-            mintPrice = newMintPrice;
-        }
-
-        function getMintPrice() public view returns (uint256) {
-            return mintPrice;
-        }
-
-        function mintStocks(uint256 amount) public payable {
-            require(amount > 0, "Amount must be greater than zero");
-            require(totalSupply(Stock) + amount <= maxSupply, "Exceeds max supply");
-            require(msg.value >= mintPrice * amount, "Insufficient payment");
-
-            _mint(msg.sender, Stock, amount, "");
-            companyWallet.transfer(msg.value);
-        }
-
-        function totalShares() public view override returns (uint256) {
-            return totalSupply(Stock);
-        }
-
-        function sharesOf(address account) public view override returns (uint256) {
-            return balanceOf(account, Stock);
-        }
-
-        function addToWhitelist(address newAddress) public onlyOwner {
-            whitelist[newAddress] = true;
-        }
-
-        function isInWhitelist(
-            address addressToValidate
-        ) public view returns (bool) {
-            if (whitelist[addressToValidate]) {
-                return true;
-            } else {
-                return false;
-            }
-        }
-
-        function _beforeTokenTransfer(
-            address operator,
-            address from,
-            address to,
-            uint256[] memory ids,
-            uint256[] memory amounts,
-            bytes memory data
-        )
-            internal
-            override(ERC1155, ERC1155Supply)
-            whenNotPaused
-        {
-            super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
-            require(isInWhitelist(to), "Account not in whitelist");
-        }
-
-        function _afterTokenTransfer(
-            address operator,
-            address from,
-            address to,
-            uint256[] memory ids,
-            uint256[] memory amounts,
-            bytes memory data
-        ) internal override(ERC1155) {
-            super._afterTokenTransfer(operator, from, to, ids, amounts, data);
-            updateDividendReleasedAfterTransfer(from, to, amounts[0]);
-        }
     }
