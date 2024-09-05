@@ -291,17 +291,61 @@ func (r *ContractVersionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		},
 	}
 
-	// Convert InitParams to JSON
-	initParamsJSON, err := json.Marshal(contractVersion.Spec.InitParams)
-	if err != nil {
-		logger.Error(err, "Failed to marshal InitParams to JSON")
-		return ctrl.Result{}, err
+	// Convert InitParams to JSON if not empty
+	if len(contractVersion.Spec.InitParams) > 0 {
+		initParamsJSON, err := json.Marshal(contractVersion.Spec.InitParams)
+		if err != nil {
+			logger.Error(err, "Failed to marshal InitParams to JSON")
+			return ctrl.Result{}, err
+		}
+		// Add InitParams JSON to the job environment variables
+		job.Spec.Template.Spec.Containers[0].Env = append(job.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
+			Name:  "INIT_PARAMS",
+			Value: string(initParamsJSON),
+		})
 	}
 
-	// Add InitParams JSON to the job environment variables
+	// Fetch the BlockExplorer referenced by the Network, if it exists
+	var blockExplorer *kontractdeployerv1alpha1.BlockExplorer
+	if network.Spec.BlockExplorerRef != nil {
+		blockExplorer = &kontractdeployerv1alpha1.BlockExplorer{}
+		err = r.Get(ctx, types.NamespacedName{Name: network.Spec.BlockExplorerRef.Name, Namespace: req.Namespace}, blockExplorer)
+		if err != nil {
+			logger.Error(err, "Failed to get BlockExplorer")
+			return ctrl.Result{}, err
+		}
+		logger.Info("Fetching the BlockExplorer instance", "BlockExplorer.Name", blockExplorer.Name)
+	}
+
+	// Add BlockExplorer details to the job environment variables if it exists
+	if blockExplorer != nil {
+		job.Spec.Template.Spec.Containers[0].Env = append(job.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
+			Name: "ETHERSCAN_API_URL",
+			ValueFrom: &corev1.EnvVarSource{
+				SecretKeyRef: &corev1.SecretKeySelector{
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: blockExplorer.Spec.SecretRef.Name,
+					},
+					Key: blockExplorer.Spec.SecretRef.URLKey,
+				},
+			},
+		}, corev1.EnvVar{
+			Name: "ETHERSCAN_API_KEY",
+			ValueFrom: &corev1.EnvVarSource{
+				SecretKeyRef: &corev1.SecretKeySelector{
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: blockExplorer.Spec.SecretRef.Name,
+					},
+					Key: blockExplorer.Spec.SecretRef.TokenKey,
+				},
+			},
+		})
+	}
+
+	// Add Chain ID to the job environment variables
 	job.Spec.Template.Spec.Containers[0].Env = append(job.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
-		Name:  "INIT_PARAMS",
-		Value: string(initParamsJSON),
+		Name:  "CHAIN_ID",
+		Value: fmt.Sprintf("%d", network.Spec.ChainID),
 	})
 
 	// Set ContractVersion instance as the owner and controller of the Job

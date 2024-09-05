@@ -1,7 +1,7 @@
 apiVersion: kontractdeployer.expedio.xyz/v1alpha1
 kind: Contract
 metadata:
-  name: contract-sample
+  name: simple-contract
 spec:
   contractName: MySmartContract
   networkRefs:

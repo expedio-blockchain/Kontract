@@ -135,7 +135,7 @@ spec:
     - "100000"
     - "1000000000000000000"
   externalModules:
-    - "OpenZeppelin/openzeppelin-contracts@v4.8.3"
+    - "OpenZeppelin/openzeppelin-contracts@v4.8.2"
   localModules:
     - name: dividend
   code: |

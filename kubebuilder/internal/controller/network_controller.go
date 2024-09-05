@@ -56,19 +56,21 @@ func (r *NetworkReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		return ctrl.Result{}, err
 	}
 
-	// Fetch the referenced BlockExplorer
-	var blockExplorer kontractdeployerv1alpha1.BlockExplorer
-	if err := r.Get(ctx, client.ObjectKey{Name: network.Spec.BlockExplorerRef.Name, Namespace: network.Namespace}, &blockExplorer); err != nil {
-		logger.Error(err, "unable to fetch BlockExplorer")
-		return ctrl.Result{}, err
+	// Fetch the referenced BlockExplorer if it exists
+	if network.Spec.BlockExplorerRef != nil {
+		var blockExplorer kontractdeployerv1alpha1.BlockExplorer
+		if err := r.Get(ctx, client.ObjectKey{Name: network.Spec.BlockExplorerRef.Name, Namespace: network.Namespace}, &blockExplorer); err != nil {
+			logger.Error(err, "unable to fetch BlockExplorer")
+			return ctrl.Result{}, err
+		}
+		network.Status.BlockExplorerEndpoint = blockExplorer.Status.APIEndpoint
+		network.Status.Healthy = rpcProvider.Status.Healthy && blockExplorer.Status.Healthy
+	} else {
+		network.Status.Healthy = rpcProvider.Status.Healthy
 	}
 
-	// Update Network status with RPC and BlockExplorer endpoints
+	// Update Network status with RPC endpoint
 	network.Status.RPCEndpoint = rpcProvider.Status.APIEndpoint
-	network.Status.BlockExplorerEndpoint = blockExplorer.Status.APIEndpoint
-
-	// Determine the health status
-	network.Status.Healthy = rpcProvider.Status.Healthy && blockExplorer.Status.Healthy
 
 	// Update the Network status
 	if err := r.Status().Update(ctx, &network); err != nil {
