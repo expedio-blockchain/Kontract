@@ -7,9 +7,10 @@ metadata:
   name: contract-sample
 spec:
   import: false
-  importContractAddress: 0x... # only of import true
+  importContractAddress: 0x... # only if import is true
   contractName: MySmartContract
-  networkRef: ethereum-mainnet
+  networkRefs:
+    - ethereum-mainnet
   walletRef: my-wallet
   gasStrategyRef: high-priority-gas
   code: |
@@ -35,6 +36,13 @@ spec:
         assertEq(myContract.value(), 0);
       }
     }
+  initParams:
+    - "param1"
+    - "param2"
+  externalModules:
+    - "OpenZeppelin/openzeppelin-contracts@v4.8.2"
+  localModules:
+    - name: dividend
 status:
   contractAddress: 0x...
   deploymentTime: 2024-09-01T00:00:00Z
