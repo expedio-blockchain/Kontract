@@ -64,43 +64,45 @@ func (r *ContractReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 	logger.Info("Fetching the Contract instance", "Contract.Name", contract.Name)
 
-	// Check if the spec has changed and create a new ContractVersion if needed
-	contractVersion := &kontractdeployerv1alpha1.ContractVersion{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("%s-version-%d", contract.Name, contract.Generation),
-			Namespace: req.Namespace,
-		},
-		Spec: kontractdeployerv1alpha1.ContractVersionSpec{
-			ContractName:    contract.Spec.ContractName,
-			NetworkRef:      contract.Spec.NetworkRef,
-			WalletRef:       contract.Spec.WalletRef,
-			GasStrategyRef:  contract.Spec.GasStrategyRef,
-			Code:            contract.Spec.Code,
-			Test:            contract.Spec.Test,
-			InitParams:      contract.Spec.InitParams,
-			ExternalModules: contract.Spec.ExternalModules,
-			LocalModules:    contract.Spec.LocalModules,
-		},
-	}
+	// Iterate over each network reference and create a ContractVersion
+	for _, networkRef := range contract.Spec.NetworkRefs {
+		contractVersion := &kontractdeployerv1alpha1.ContractVersion{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      fmt.Sprintf("%s-%s-version-%d", contract.Name, networkRef, contract.Generation),
+				Namespace: req.Namespace,
+			},
+			Spec: kontractdeployerv1alpha1.ContractVersionSpec{
+				ContractName:    contract.Spec.ContractName,
+				NetworkRef:      networkRef,
+				WalletRef:       contract.Spec.WalletRef,
+				GasStrategyRef:  contract.Spec.GasStrategyRef,
+				Code:            contract.Spec.Code,
+				Test:            contract.Spec.Test,
+				InitParams:      contract.Spec.InitParams,
+				ExternalModules: contract.Spec.ExternalModules,
+				LocalModules:    contract.Spec.LocalModules,
+			},
+		}
 
-	// Set Contract instance as the owner and controller of the ContractVersion
-	if err := controllerutil.SetControllerReference(contract, contractVersion, r.Scheme); err != nil {
-		r.Recorder.Error(err, "Failed to set owner reference for ContractVersion", "ContractVersion.Name", contractVersion.Name)
-		return ctrl.Result{}, err
-	}
-
-	// Create the ContractVersion
-	err = r.Create(ctx, contractVersion)
-	if err != nil {
-		if !errors.IsAlreadyExists(err) {
-			logger.Error(err, "Failed to create ContractVersion")
-			r.Recorder.Error(err, "Failed to create ContractVersion", "ContractVersion.Name", contractVersion.Name)
+		// Set Contract instance as the owner and controller of the ContractVersion
+		if err := controllerutil.SetControllerReference(contract, contractVersion, r.Scheme); err != nil {
+			r.Recorder.Error(err, "Failed to set owner reference for ContractVersion", "ContractVersion.Name", contractVersion.Name)
 			return ctrl.Result{}, err
+		}
+
+		// Create the ContractVersion
+		err = r.Create(ctx, contractVersion)
+		if err != nil {
+			if !errors.IsAlreadyExists(err) {
+				logger.Error(err, "Failed to create ContractVersion")
+				r.Recorder.Error(err, "Failed to create ContractVersion", "ContractVersion.Name", contractVersion.Name)
+				return ctrl.Result{}, err
+			}
 		}
 	}
 
 	// Update the Contract status with the current version
-	contract.Status.CurrentVersion = contractVersion.Name
+	contract.Status.CurrentVersion = fmt.Sprintf("%s-version-%d", contract.Name, contract.Generation)
 	err = r.Status().Update(ctx, contract)
 	if err != nil {
 		logger.Error(err, "Failed to update Contract status")
