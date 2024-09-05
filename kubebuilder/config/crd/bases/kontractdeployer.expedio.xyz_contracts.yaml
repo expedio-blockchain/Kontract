@@ -84,10 +84,12 @@ spec:
                   - name
                   type: object
                 type: array
-              networkRef:
-                description: NetworkRef references the Network resource where this
+              networkRefs:
+                description: NetworkRefs references the Network resources where this
                   contract is deployed
-                type: string
+                items:
+                  type: string
+                type: array
               test:
                 description: |-
                   Test is the source code for testing the smart contract
@@ -101,7 +103,7 @@ spec:
             - code
             - contractName
             - gasStrategyRef
-            - networkRef
+            - networkRefs
             - walletRef
             type: object
           status:

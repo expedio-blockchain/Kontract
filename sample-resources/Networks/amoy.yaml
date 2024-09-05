@@ -1,0 +1,11 @@
+apiVersion: kontractdeployer.expedio.xyz/v1alpha1
+kind: Network
+metadata:
+  name: amoy
+spec:
+  networkName: amoy-testnet
+  chainID: 18000
+  rpcProviderRef: 
+    name: infura-amoy
+  blockExplorerRef:
+    name: polygonscan-block-explorer
