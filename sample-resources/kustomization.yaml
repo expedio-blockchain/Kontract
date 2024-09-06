@@ -6,8 +6,6 @@ resources:
   - BlockExplorer/polygonscan.yaml
   - Contracts/ComplexContract.yaml
   - Contracts/SimpleContract.yaml
-  - Networks/amoy.yaml
   - Networks/holesky.yaml
-  - RPCProvider/InfuraAmoy.yaml
   - RPCProvider/InfuraHolesky.yaml
   - Wallets/wallet.yaml
