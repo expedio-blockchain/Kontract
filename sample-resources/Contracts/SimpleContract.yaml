@@ -5,15 +5,16 @@ metadata:
 spec:
   contractName: SimpleContract
   networkRefs:
-   - network-sample
-  walletRef: wallet-sample
+   - holesky
+   - amoy
+  walletRef: dev-wallet
   gasStrategyRef: high-priority-gas
   code: |
     // SPDX-License-Identifier: MIT
     pragma solidity ^0.8.0;
     contract SimpleContract {
-      uint256 public value;
-      function setValue(uint256 newValue) public {
+      uint128 public value;
+      function setValue(uint128 newValue) public {
         value = newValue;
       }
     }

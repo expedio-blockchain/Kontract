@@ -2,21 +2,20 @@
 apiVersion: kontractdeployer.expedio.xyz/v1alpha1
 kind: Contract
 metadata:
-  name: blockchain-stocks-contract
+  name: complex-contract
 spec:
   contractName: BSP
   networkRefs:
     - holesky
-    - amoy
   walletRef: dev-wallet
   gasStrategyRef: high-priority-gas
   initParams:
-    - "https://example.com/metadata"
+    - "https://expedio.xyz/metadata"
     - "0x1234567890abcdef1234567890abcdef12345678"
     - "100000"
     - "1000000000000000000"
   externalModules:
-    - "OpenZeppelin/openzeppelin-contracts@v4.8.2"
+    - "OpenZeppelin/openzeppelin-contracts@v4.8.3"
   localModules:
     - name: dividend
   code: |
