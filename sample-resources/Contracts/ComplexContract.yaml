@@ -2,7 +2,7 @@
 apiVersion: kontractdeployer.expedio.xyz/v1alpha1
 kind: Contract
 metadata:
-  name: blockchain-stocks-contract
+  name: complex-contract
 spec:
   contractName: BSP
   networkRefs:
@@ -16,7 +16,7 @@ spec:
     - "100000"
     - "1000000000000000000"
   externalModules:
-    - "OpenZeppelin/openzeppelin-contracts@v4.8.2"
+    - "OpenZeppelin/openzeppelin-contracts@v4.8.3"
   localModules:
     - name: dividend
   code: |

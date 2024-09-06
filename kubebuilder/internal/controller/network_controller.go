@@ -20,6 +20,7 @@ import (
 	"context"
 
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -30,7 +31,8 @@ import (
 // NetworkReconciler reconciles a Network object
 type NetworkReconciler struct {
 	client.Client
-	Scheme *runtime.Scheme
+	Scheme        *runtime.Scheme
+	EventRecorder record.EventRecorder
 }
 
 // +kubebuilder:rbac:groups=kontractdeployer.expedio.xyz,resources=networks,verbs=get;list;watch;create;update;patch;delete
@@ -51,16 +53,20 @@ func (r *NetworkReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 
 	// Fetch the referenced RPCProvider
 	var rpcProvider kontractdeployerv1alpha1.RPCProvider
-	if err := r.Get(ctx, client.ObjectKey{Name: network.Spec.RPCProviderRef.Name, Namespace: network.Namespace}, &rpcProvider); err != nil {
-		logger.Error(err, "unable to fetch RPCProvider")
+	rpcProviderKey := client.ObjectKey{Name: network.Spec.RPCProviderRef.Name, Namespace: network.Namespace}
+	if err := r.Get(ctx, rpcProviderKey, &rpcProvider); err != nil {
+		logger.Error(err, "unable to fetch RPCProvider", "RPCProviderKey", rpcProviderKey)
+		r.EventRecorder.Event(&network, "Warning", "MissingRPCProvider", "RPCProvider is specified but missing")
 		return ctrl.Result{}, err
 	}
 
 	// Fetch the referenced BlockExplorer if it exists
 	if network.Spec.BlockExplorerRef != nil {
 		var blockExplorer kontractdeployerv1alpha1.BlockExplorer
-		if err := r.Get(ctx, client.ObjectKey{Name: network.Spec.BlockExplorerRef.Name, Namespace: network.Namespace}, &blockExplorer); err != nil {
-			logger.Error(err, "unable to fetch BlockExplorer")
+		blockExplorerKey := client.ObjectKey{Name: network.Spec.BlockExplorerRef.Name, Namespace: network.Namespace}
+		if err := r.Get(ctx, blockExplorerKey, &blockExplorer); err != nil {
+			logger.Error(err, "unable to fetch BlockExplorer", "BlockExplorerKey", blockExplorerKey)
+			r.EventRecorder.Event(&network, "Warning", "MissingBlockExplorer", "BlockExplorer is specified but missing")
 			return ctrl.Result{}, err
 		}
 		network.Status.BlockExplorerEndpoint = blockExplorer.Status.APIEndpoint

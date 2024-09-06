@@ -102,13 +102,18 @@ func (r *ContractVersionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	logger.Info("Fetching the Wallet instance", "Wallet.Name", wallet.Name)
 
 	// Fetch the Wallet Secret
+	if wallet.Status.SecretRef == "" {
+		logger.Error(fmt.Errorf("wallet secret reference is empty"), "Wallet secret reference is empty", "Wallet.Name", wallet.Name)
+		return ctrl.Result{}, fmt.Errorf("wallet secret reference is empty")
+	}
+
 	walletSecret := &corev1.Secret{}
-	err = r.Get(ctx, types.NamespacedName{Name: wallet.Spec.ImportFrom.SecretRef, Namespace: req.Namespace}, walletSecret)
+	err = r.Get(ctx, types.NamespacedName{Name: wallet.Status.SecretRef, Namespace: req.Namespace}, walletSecret)
 	if err != nil {
 		logger.Error(err, "Failed to get Wallet Secret")
 		return ctrl.Result{}, err
 	}
-	logger.Info("Fetching the Wallet Secret", "WalletSecret.Name", wallet.Spec.ImportFrom.SecretRef)
+	logger.Info("Fetching the Wallet Secret", "WalletSecret.Name", wallet.Status.SecretRef)
 
 	// Create a ConfigMap for the contract code and tests
 	configMapName := fmt.Sprintf("%s-contract", contractVersion.Name)
@@ -262,7 +267,7 @@ func (r *ContractVersionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 									ValueFrom: &corev1.EnvVarSource{
 										SecretKeyRef: &corev1.SecretKeySelector{
 											LocalObjectReference: corev1.LocalObjectReference{
-												Name: wallet.Spec.ImportFrom.SecretRef,
+												Name: wallet.Status.SecretRef,
 											},
 											Key: "privateKey",
 										},

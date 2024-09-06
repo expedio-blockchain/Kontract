@@ -12,10 +12,9 @@ spec:
 
 ---
 apiVersion: v1
-stringData:
-  endpoint: https://holesky.infura.io/v3/
-  key: ***REMOVED***
 kind: Secret
 metadata:
   name: infura-holesky-api-secret
-type: Opaque
+stringData:
+  endpoint: https://holesky.infura.io/v3/
+  key: ***REMOVED***
