@@ -10,7 +10,7 @@ spec:
   walletRef: dev-wallet
   gasStrategyRef: high-priority-gas
   initParams:
-    - "https://example.com/metadata"
+    - "https://expedio.xyz/metadata"
     - "0x1234567890abcdef1234567890abcdef12345678"
     - "100000"
     - "1000000000000000000"
