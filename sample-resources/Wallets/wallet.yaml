@@ -5,5 +5,3 @@ metadata:
 spec:
   walletType: EOA
   networkRef: ethereum-mainnet
-  importFrom:
-    secretRef: test-wallet-secret
