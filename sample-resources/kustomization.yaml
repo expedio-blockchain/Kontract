@@ -8,6 +8,8 @@ resources:
   - Contracts/SimpleContract.yaml
   - Networks/holesky.yaml
   - Networks/amoy.yaml
+  - Networks/sepoila.yaml
   - RPCProvider/InfuraAmoy.yaml
   - RPCProvider/InfuraHolesky.yaml
+  - RPCProvider/InfuraSepoila.yaml
   - Wallets/wallet.yaml

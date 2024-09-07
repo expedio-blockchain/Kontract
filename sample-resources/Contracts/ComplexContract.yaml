@@ -7,6 +7,8 @@ spec:
   contractName: BSP
   networkRefs:
     - holesky
+    - amoy
+    - sepolia
   walletRef: dev-wallet
   gasStrategyRef: high-priority-gas
   initParams:
