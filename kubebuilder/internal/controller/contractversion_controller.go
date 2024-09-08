@@ -20,6 +20,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"strings"
 	"time"
 
@@ -404,7 +405,7 @@ func (r *ContractVersionReconciler) createOrUpdateConfigMap(ctx context.Context,
 	}
 
 	// Check if the existing ConfigMap data is different from the new data
-	if found.ResourceVersion != cm.ResourceVersion {
+	if !reflect.DeepEqual(found.Data, cm.Data) {
 		// ConfigMap found, update it
 		found.Data = cm.Data
 		logger := log.FromContext(ctx)
