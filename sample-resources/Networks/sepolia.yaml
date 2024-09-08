@@ -1,0 +1,11 @@
+apiVersion: kontractdeployer.expedio.xyz/v1alpha1
+kind: Network
+metadata:
+  name: sepolia
+spec:
+  networkName: sepolia-testnet
+  chainID: 11155111
+  rpcProviderRef: 
+    name: infura-sepolia
+  blockExplorerRef:
+    name: etherscan-block-explorer
