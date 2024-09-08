@@ -11,7 +11,7 @@ spec:
   gasStrategyRef: high-priority-gas
   code: |
     // SPDX-License-Identifier: MIT
-    pragma solidity ^0.8.0;
+    pragma solidity ^0.8.9;
     contract SimpleContract {
       uint128 public value;
       function setValue(uint128 newValue) public {
@@ -20,7 +20,7 @@ spec:
     }
   test: |
     // SPDX-License-Identifier: MIT
-    pragma solidity ^0.8.0;
+    pragma solidity ^0.8.9;
     import "src/SimpleContract.sol";
     contract SimpleContractTest {
       SimpleContract myContract;
