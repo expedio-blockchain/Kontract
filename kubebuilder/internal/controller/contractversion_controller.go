@@ -380,7 +380,9 @@ func (r *ContractVersionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	// Job already exists - check its status
 	if found.Status.Succeeded > 0 {
 		// Job succeeded, update the ContractVersion status
-		contractVersion.Status.DeploymentTime = metav1.Now()
+		if contractVersion.Status.DeploymentTime.IsZero() {
+			contractVersion.Status.DeploymentTime = metav1.Now()
+		}
 		contractVersion.Status.State = "deployed"
 		if err := r.Status().Update(ctx, contractVersion); err != nil {
 			logger.Error(err, "Failed to update ContractVersion status")
