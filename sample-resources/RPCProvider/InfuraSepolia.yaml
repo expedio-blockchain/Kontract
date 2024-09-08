@@ -1,0 +1,20 @@
+---
+apiVersion: kontractdeployer.expedio.xyz/v1alpha1
+kind: RPCProvider
+metadata:
+  name: infura-sepolia
+spec:
+  providerName: Infura
+  secretRef:
+    name: infura-sepolia-api-secret
+    tokenKey: key
+    urlKey: endpoint
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: infura-sepolia-api-secret
+stringData:
+  endpoint: https://sepolia.infura.io/v3/
+  key: ***REMOVED***
