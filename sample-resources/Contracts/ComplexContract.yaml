@@ -4,7 +4,7 @@ kind: Contract
 metadata:
   name: complex-contract
 spec:
-  contractName: BSP
+  contractName: BlockchainStocks
   networkRefs:
     - holesky
   walletRef: dev-wallet
@@ -29,7 +29,7 @@ spec:
     import "lib/openzeppelin-contracts/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
     import "src/dividend/Dividend.sol";
 
-    contract BSP is ERC1155, Ownable, Pausable, ERC1155Supply, Dividend {
+    contract BlockchainStocks is ERC1155, Ownable, Pausable, ERC1155Supply, Dividend {
 
         uint8 public constant Stock = 1;
         uint256 public maxSupply;
