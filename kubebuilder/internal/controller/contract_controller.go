@@ -21,7 +21,6 @@ import (
 	"fmt"
 
 	"github.com/go-logr/logr"
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -62,7 +61,6 @@ func (r *ContractReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		// Error reading the object - requeue the request.
 		return ctrl.Result{}, err
 	}
-	logger.Info("Fetching the Contract instance", "Contract.Name", contract.Name)
 
 	// Iterate over each network reference and create a ContractVersion
 	for _, networkRef := range contract.Spec.NetworkRefs {
@@ -110,21 +108,6 @@ func (r *ContractReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	return ctrl.Result{}, nil
-}
-
-// createOrUpdateConfigMap creates or updates a ConfigMap
-func (r *ContractReconciler) createOrUpdateConfigMap(ctx context.Context, cm *corev1.ConfigMap) error {
-	found := &corev1.ConfigMap{}
-	err := r.Get(ctx, client.ObjectKey{Name: cm.Name, Namespace: cm.Namespace}, found)
-	if err != nil && errors.IsNotFound(err) {
-		// ConfigMap not found, create it
-		return r.Create(ctx, cm)
-	} else if err != nil {
-		return err
-	}
-	// ConfigMap found, update it
-	found.Data = cm.Data
-	return r.Update(ctx, found)
 }
 
 // SetupWithManager sets up the controller with the Manager.

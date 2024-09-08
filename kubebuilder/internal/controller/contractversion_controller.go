@@ -63,7 +63,6 @@ func (r *ContractVersionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		// Error reading the object - requeue the request.
 		return ctrl.Result{}, err
 	}
-	logger.Info("Fetching the ContractVersion instance", "ContractVersion.Name", contractVersion.Name)
 
 	// Fetch the Network instance
 	network := &kontractdeployerv1alpha1.Network{}
@@ -72,7 +71,6 @@ func (r *ContractVersionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		logger.Error(err, "Failed to get Network")
 		return ctrl.Result{}, err
 	}
-	logger.Info("Fetching the Network instance", "Network.Name", network.Name)
 
 	// Fetch the RPCProvider referenced by the Network
 	rpcProvider := &kontractdeployerv1alpha1.RPCProvider{}
@@ -81,7 +79,6 @@ func (r *ContractVersionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		logger.Error(err, "Failed to get RPCProvider")
 		return ctrl.Result{}, err
 	}
-	logger.Info("Fetching the RPCProvider instance", "RPCProvider.Name", rpcProvider.Name)
 
 	// Fetch the Secret referenced by the RPCProvider
 	rpcProviderSecret := &corev1.Secret{}
@@ -90,7 +87,6 @@ func (r *ContractVersionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		logger.Error(err, "Failed to get RPCProvider Secret")
 		return ctrl.Result{}, err
 	}
-	logger.Info("Fetching the RPCProvider Secret", "Secret.Name", rpcProvider.Spec.SecretRef.Name)
 
 	// Fetch the Wallet instance
 	wallet := &kontractdeployerv1alpha1.Wallet{}
@@ -99,7 +95,6 @@ func (r *ContractVersionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		logger.Error(err, "Failed to get Wallet")
 		return ctrl.Result{}, err
 	}
-	logger.Info("Fetching the Wallet instance", "Wallet.Name", wallet.Name)
 
 	// Fetch the Wallet Secret
 	if wallet.Status.SecretRef == "" {
@@ -113,7 +108,6 @@ func (r *ContractVersionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		logger.Error(err, "Failed to get Wallet Secret")
 		return ctrl.Result{}, err
 	}
-	logger.Info("Fetching the Wallet Secret", "WalletSecret.Name", wallet.Status.SecretRef)
 
 	// Create a ConfigMap for the contract code and tests
 	configMapName := fmt.Sprintf("%s-contract", contractVersion.Name)
@@ -146,7 +140,6 @@ func (r *ContractVersionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		logger.Error(err, "Failed to create or update ConfigMap", "ConfigMap.Name", configMapName)
 		return ctrl.Result{}, err
 	}
-	logger.Info("ConfigMap created or updated", "ConfigMap.Name", configMapName)
 
 	// Define the job that will deploy the contract
 	contractFileName := fmt.Sprintf("%s.sol", contractVersion.Spec.ContractName)
@@ -205,7 +198,6 @@ func (r *ContractVersionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 			logger.Error(err, "Failed to get LocalModule ConfigMap", "ConfigMap.Name", configMapName)
 			return ctrl.Result{}, err
 		}
-		logger.Info("Fetching the LocalModule ConfigMap", "ConfigMap.Name", configMapName)
 
 		for key := range configMap.Data {
 			volumeMounts = append(volumeMounts, corev1.VolumeMount{
@@ -319,7 +311,6 @@ func (r *ContractVersionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 			logger.Error(err, "Failed to get BlockExplorer")
 			return ctrl.Result{}, err
 		}
-		logger.Info("Fetching the BlockExplorer instance", "BlockExplorer.Name", blockExplorer.Name)
 	}
 
 	// Add BlockExplorer details to the job environment variables if it exists
@@ -411,9 +402,18 @@ func (r *ContractVersionReconciler) createOrUpdateConfigMap(ctx context.Context,
 	} else if err != nil {
 		return err
 	}
-	// ConfigMap found, update it
-	found.Data = cm.Data
-	return r.Update(ctx, found)
+
+	// Check if the existing ConfigMap data is different from the new data
+	if found.ResourceVersion != cm.ResourceVersion {
+		// ConfigMap found, update it
+		found.Data = cm.Data
+		logger := log.FromContext(ctx)
+		logger.Info("Updating ConfigMap", "ConfigMap.Name", cm.Name)
+		return r.Update(ctx, found)
+	}
+
+	// No update needed
+	return nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
