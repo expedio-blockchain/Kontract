@@ -109,28 +109,8 @@ spec:
           status:
             description: ContractStatus defines the observed state of Contract
             properties:
-              contractAddress:
-                description: ContractAddress is the address of the deployed contract
-                type: string
               currentVersion:
                 description: CurrentVersion is the current version of the contract
-                type: string
-              deploymentTime:
-                description: DeploymentTime is the timestamp when the contract was
-                  deployed
-                format: date-time
-                type: string
-              state:
-                description: State represents the current state of the contract (e.g.,
-                  deployed, failed)
-                type: string
-              test:
-                description: Test indicates the result of the contract tests (e.g.,
-                  passed, failed)
-                type: string
-              transactionHash:
-                description: TransactionHash is the hash of the transaction that deployed
-                  the contract
                 type: string
             type: object
         type: object

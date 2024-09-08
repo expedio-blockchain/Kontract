@@ -7,3 +7,5 @@ spec:
   chainID: 18000
   rpcProviderRef: 
     name: infura-amoy
+  blockExplorerRef:
+    name: polygonscan-block-explorer
