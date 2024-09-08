@@ -66,10 +66,10 @@ func (r *BlockExplorerReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	return ctrl.Result{}, nil
 }
 
-// StartPeriodicHealthCheck starts a background goroutine that checks the health of all BlockExplorers every minute
+// StartPeriodicHealthCheck starts a background goroutine that checks the health of all BlockExplorers every 5 minutes
 func (r *BlockExplorerReconciler) StartPeriodicHealthCheck(ctx context.Context) {
 	go func() {
-		ticker := time.NewTicker(1 * time.Minute)
+		ticker := time.NewTicker(5 * time.Minute) // Changed from 1 minute to 5 minutes
 		defer ticker.Stop()
 
 		for {
