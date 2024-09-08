@@ -67,21 +67,6 @@ type ContractSpec struct {
 
 // ContractStatus defines the observed state of Contract
 type ContractStatus struct {
-	// ContractAddress is the address of the deployed contract
-	ContractAddress string `json:"contractAddress,omitempty"`
-
-	// DeploymentTime is the timestamp when the contract was deployed
-	DeploymentTime metav1.Time `json:"deploymentTime,omitempty"`
-
-	// TransactionHash is the hash of the transaction that deployed the contract
-	TransactionHash string `json:"transactionHash,omitempty"`
-
-	// Test indicates the result of the contract tests (e.g., passed, failed)
-	Test string `json:"test,omitempty"`
-
-	// State represents the current state of the contract (e.g., deployed, failed)
-	State string `json:"state,omitempty"`
-
 	// CurrentVersion is the current version of the contract
 	CurrentVersion string `json:"currentVersion,omitempty"`
 }

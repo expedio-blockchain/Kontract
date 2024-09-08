@@ -73,6 +73,7 @@ func (r *RPCProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 // StartPeriodicHealthCheck starts a background goroutine that checks the health of all RPCProviders every minute
 func (r *RPCProviderReconciler) StartPeriodicHealthCheck(ctx context.Context) {
 	go func() {
+
 		ticker := time.NewTicker(1 * time.Minute)
 		defer ticker.Stop()
 
