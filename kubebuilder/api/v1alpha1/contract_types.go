@@ -63,6 +63,10 @@ type ContractSpec struct {
 
 	// InitParams is a list of initialization parameters for the contract
 	InitParams []string `json:"initParams,omitempty"`
+
+	// Script is the source code of the deployment script
+	// Optional
+	Script string `json:"script,omitempty"`
 }
 
 // ContractStatus defines the observed state of Contract
