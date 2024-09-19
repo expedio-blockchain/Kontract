@@ -90,6 +90,11 @@ spec:
                 items:
                   type: string
                 type: array
+              script:
+                description: |-
+                  Script is the source code of the deployment script
+                  Optional
+                type: string
               test:
                 description: |-
                   Test is the source code for testing the smart contract
