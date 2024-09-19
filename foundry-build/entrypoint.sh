@@ -70,6 +70,7 @@ if [ -f "$SCRIPT_FILE" ]; then
     log "Running deployment script..."
     log "forge script $SCRIPT_FILE --rpc-url $FULL_RPC_URL --private-key ************ --broadcast"
     forge script "$SCRIPT_FILE" --rpc-url "$FULL_RPC_URL" --private-key "$WALLET_PRV_KEY" --broadcast | tee "$DEPLOY_OUTPUT_FILE"
+    echo "Script completed."
 else
     if [ -n "$PARAMS" ] && [ -n "$ETHERSCAN_API_KEY" ]; then
         log "forge create $CONTRACT_FILE:$CONTRACT_NAME --rpc-url $FULL_RPC_URL --private-key ************ --constructor-args $PARAMS --verify --etherscan-api-key ************"
@@ -84,11 +85,11 @@ else
         log "forge create $CONTRACT_FILE:$CONTRACT_NAME --rpc-url $FULL_RPC_URL --private-key ************"
         forge create "$CONTRACT_FILE:$CONTRACT_NAME" --rpc-url "$FULL_RPC_URL" --private-key "$WALLET_PRV_KEY" | tee "$DEPLOY_OUTPUT_FILE"
     fi
+
+    # Extract the deployed contract address from the output
+    CONTRACT_ADDRESS=$(grep -oP 'Deployed to: \K(0x[a-fA-F0-9]{40})' "$DEPLOY_OUTPUT_FILE")
+
+    print_separator
+    log "Deployment completed. Contract Address: $CONTRACT_ADDRESS"
+    print_separator
 fi
-
-# Extract the deployed contract address from the output
-CONTRACT_ADDRESS=$(grep -oP 'Deployed to: \K(0x[a-fA-F0-9]{40})' "$DEPLOY_OUTPUT_FILE")
-
-print_separator
-log "Deployment completed. Contract Address: $CONTRACT_ADDRESS"
-print_separator
