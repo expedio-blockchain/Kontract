@@ -26,6 +26,7 @@ spec:
       function run() external {
         vm.startBroadcast();
         ScriptContract myContract = new ScriptContract();
+        console.log("Contract deployed at:", address(myContract));
         vm.stopBroadcast();
       }
     }

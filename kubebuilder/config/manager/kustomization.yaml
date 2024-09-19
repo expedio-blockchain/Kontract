@@ -5,4 +5,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: docker.io/expedio/kontract-deployer
-  newTag: script-1
+  newTag: script-2
