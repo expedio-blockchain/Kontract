@@ -19,6 +19,18 @@ spec:
         value = newValue;
       }
     }
+  script: |
+    // SPDX-License-Identifier: MIT
+    pragma solidity ^0.8.0;
+    import "forge-std/Script.sol";
+    import "../src/MySmartContract.sol";
+    contract MySmartContractScript is Script {
+      function run() external {
+        vm.startBroadcast();
+        new MySmartContract();
+        vm.stopBroadcast();
+      }
+    }
   test: |
     // SPDX-License-Identifier: MIT
     pragma solidity ^0.8.0;

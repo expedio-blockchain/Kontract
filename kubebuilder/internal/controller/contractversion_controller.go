@@ -110,7 +110,7 @@ func (r *ContractVersionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		return ctrl.Result{}, err
 	}
 
-	// Create a ConfigMap for the contract code and tests
+	// Create a ConfigMap for the contract code, tests, and script
 	configMapName := fmt.Sprintf("%s-contract", contractVersion.Name)
 	configMapData := map[string]string{
 		"code": contractVersion.Spec.Code,
@@ -119,6 +119,11 @@ func (r *ContractVersionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	// Only add the test data if it exists
 	if contractVersion.Spec.Test != "" {
 		configMapData["tests"] = contractVersion.Spec.Test
+	}
+
+	// Only add the script data if it exists
+	if contractVersion.Spec.Script != "" {
+		configMapData["script"] = contractVersion.Spec.Script
 	}
 
 	configMap := &corev1.ConfigMap{
@@ -155,6 +160,24 @@ func (r *ContractVersionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		},
 	}
 
+	// Only add the test volume if the test data exists
+	if contractVersion.Spec.Test != "" {
+		volumeMounts = append(volumeMounts, corev1.VolumeMount{
+			Name:      "contract-tests",
+			MountPath: fmt.Sprintf("/home/foundryuser/expedio-kontract-deployer/test/%s", testFileName),
+			SubPath:   "tests",
+		})
+	}
+
+	// Only add the script volume if the script data exists
+	if contractVersion.Spec.Script != "" {
+		volumeMounts = append(volumeMounts, corev1.VolumeMount{
+			Name:      "contract-script",
+			MountPath: fmt.Sprintf("/home/foundryuser/expedio-kontract-deployer/script/%s.s.sol", contractVersion.Spec.ContractName),
+			SubPath:   "script",
+		})
+	}
+
 	volumes := []corev1.Volume{
 		{
 			Name: "contract-code",
@@ -168,16 +191,24 @@ func (r *ContractVersionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		},
 	}
 
-	// Only add the test volume if the test data exists
+	// Add the test volume if the test data exists
 	if contractVersion.Spec.Test != "" {
-		volumeMounts = append(volumeMounts, corev1.VolumeMount{
-			Name:      "contract-tests",
-			MountPath: fmt.Sprintf("/home/foundryuser/expedio-kontract-deployer/test/%s", testFileName),
-			SubPath:   "tests",
-		})
-
 		volumes = append(volumes, corev1.Volume{
 			Name: "contract-tests",
+			VolumeSource: corev1.VolumeSource{
+				ConfigMap: &corev1.ConfigMapVolumeSource{
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: configMapName,
+					},
+				},
+			},
+		})
+	}
+
+	// Add the script volume if the script data exists
+	if contractVersion.Spec.Script != "" {
+		volumes = append(volumes, corev1.Volume{
+			Name: "contract-script",
 			VolumeSource: corev1.VolumeSource{
 				ConfigMap: &corev1.ConfigMapVolumeSource{
 					LocalObjectReference: corev1.LocalObjectReference{
