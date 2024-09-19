@@ -34,6 +34,7 @@ type ContractVersionSpec struct {
 	InitParams      []string             `json:"initParams,omitempty"`
 	ExternalModules []string             `json:"externalModules,omitempty"`
 	LocalModules    []ConfigMapReference `json:"localModules,omitempty"`
+	Script          string               `json:"script,omitempty"`
 }
 
 // ContractVersionStatus defines the observed state of ContractVersion

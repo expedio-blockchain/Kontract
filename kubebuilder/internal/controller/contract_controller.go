@@ -79,6 +79,7 @@ func (r *ContractReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 				InitParams:      contract.Spec.InitParams,
 				ExternalModules: contract.Spec.ExternalModules,
 				LocalModules:    contract.Spec.LocalModules,
+				Script:          contract.Spec.Script,
 			},
 		}
 

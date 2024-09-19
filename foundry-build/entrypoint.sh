@@ -50,6 +50,7 @@ print_separator
 
 # Determine the contract name dynamically
 CONTRACT_FILE="src/${CONTRACT_NAME}.sol"
+SCRIPT_FILE="script/${CONTRACT_NAME}.s.sol"
 
 log "Deploying the contract $CONTRACT_NAME..."
 print_separator
@@ -65,18 +66,24 @@ FULL_RPC_URL="${RPC_URL}${RPC_KEY}"
 # Deploy the contract and capture the deployed address
 DEPLOY_OUTPUT_FILE=$(mktemp)
 
-if [ -n "$PARAMS" ] && [ -n "$ETHERSCAN_API_KEY" ]; then
-    log "forge create $CONTRACT_FILE:$CONTRACT_NAME --rpc-url $FULL_RPC_URL --private-key ************ --constructor-args $PARAMS --verify --etherscan-api-key ************"
-    forge create "$CONTRACT_FILE:$CONTRACT_NAME" --rpc-url "$FULL_RPC_URL" --private-key "$WALLET_PRV_KEY" --constructor-args $PARAMS --verify --etherscan-api-key "$ETHERSCAN_API_KEY" | tee "$DEPLOY_OUTPUT_FILE"
-elif [ -n "$PARAMS" ]; then
-    log "forge create $CONTRACT_FILE:$CONTRACT_NAME --rpc-url $FULL_RPC_URL --private-key ************ --constructor-args $PARAMS"
-    forge create "$CONTRACT_FILE:$CONTRACT_NAME" --rpc-url "$FULL_RPC_URL" --private-key "$WALLET_PRV_KEY" --constructor-args $PARAMS | tee "$DEPLOY_OUTPUT_FILE"
-elif [ -n "$ETHERSCAN_API_KEY" ]; then
-    log "forge create $CONTRACT_FILE:$CONTRACT_NAME --rpc-url $FULL_RPC_URL --private-key ************ --verify --etherscan-api-key ************"
-    forge create "$CONTRACT_FILE:$CONTRACT_NAME" --rpc-url "$FULL_RPC_URL" --private-key "$WALLET_PRV_KEY" --verify --etherscan-api-key "$ETHERSCAN_API_KEY" | tee "$DEPLOY_OUTPUT_FILE"
+if [ -n "$SCRIPT" ]; then
+    log "Running deployment script..."
+    log "forge script $SCRIPT_FILE --rpc-url $FULL_RPC_URL --private-key ************ --broadcast"
+    forge script "$SCRIPT_FILE" --rpc-url "$FULL_RPC_URL" --private-key "$WALLET_PRV_KEY" --broadcast | tee "$DEPLOY_OUTPUT_FILE"
 else
-    log "forge create $CONTRACT_FILE:$CONTRACT_NAME --rpc-url $FULL_RPC_URL --private-key ************"
-    forge create "$CONTRACT_FILE:$CONTRACT_NAME" --rpc-url "$FULL_RPC_URL" --private-key "$WALLET_PRV_KEY" | tee "$DEPLOY_OUTPUT_FILE"
+    if [ -n "$PARAMS" ] && [ -n "$ETHERSCAN_API_KEY" ]; then
+        log "forge create $CONTRACT_FILE:$CONTRACT_NAME --rpc-url $FULL_RPC_URL --private-key ************ --constructor-args $PARAMS --verify --etherscan-api-key ************"
+        forge create "$CONTRACT_FILE:$CONTRACT_NAME" --rpc-url "$FULL_RPC_URL" --private-key "$WALLET_PRV_KEY" --constructor-args $PARAMS --verify --etherscan-api-key "$ETHERSCAN_API_KEY" | tee "$DEPLOY_OUTPUT_FILE"
+    elif [ -n "$PARAMS" ]; then
+        log "forge create $CONTRACT_FILE:$CONTRACT_NAME --rpc-url $FULL_RPC_URL --private-key ************ --constructor-args $PARAMS"
+        forge create "$CONTRACT_FILE:$CONTRACT_NAME" --rpc-url "$FULL_RPC_URL" --private-key "$WALLET_PRV_KEY" --constructor-args $PARAMS | tee "$DEPLOY_OUTPUT_FILE"
+    elif [ -n "$ETHERSCAN_API_KEY" ]; then
+        log "forge create $CONTRACT_FILE:$CONTRACT_NAME --rpc-url $FULL_RPC_URL --private-key ************ --verify --etherscan-api-key ************"
+        forge create "$CONTRACT_FILE:$CONTRACT_NAME" --rpc-url "$FULL_RPC_URL" --private-key "$WALLET_PRV_KEY" --verify --etherscan-api-key "$ETHERSCAN_API_KEY" | tee "$DEPLOY_OUTPUT_FILE"
+    else
+        log "forge create $CONTRACT_FILE:$CONTRACT_NAME --rpc-url $FULL_RPC_URL --private-key ************"
+        forge create "$CONTRACT_FILE:$CONTRACT_NAME" --rpc-url "$FULL_RPC_URL" --private-key "$WALLET_PRV_KEY" | tee "$DEPLOY_OUTPUT_FILE"
+    fi
 fi
 
 # Extract the deployed contract address from the output
