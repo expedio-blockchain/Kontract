@@ -1,0 +1,31 @@
+apiVersion: kontractdeployer.expedio.xyz/v1alpha1
+kind: Contract
+metadata:
+  name: script-contract
+spec:
+  contractName: ScriptContract
+  networkRefs:
+    - holesky
+  walletRef: dev-wallet
+  gasStrategyRef: high-priority-gas
+  code: |
+    // SPDX-License-Identifier: MIT
+    pragma solidity ^0.8.0;
+    contract ScriptContract {
+      uint256 public value;
+      function setValue(uint256 newValue) public {
+        value = newValue;
+      }
+    }
+  script: |
+    // SPDX-License-Identifier: MIT
+    pragma solidity ^0.8.0;
+    import "forge-std/Script.sol";
+    import "../src/ScriptContract.sol";
+    contract DeploymentScript is Script {
+      function run() external {
+        vm.startBroadcast();
+        ScriptContract myContract = new ScriptContract();
+        vm.stopBroadcast();
+      }
+    }

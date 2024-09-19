@@ -173,7 +173,7 @@ func (r *ContractVersionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	if contractVersion.Spec.Script != "" {
 		volumeMounts = append(volumeMounts, corev1.VolumeMount{
 			Name:      "contract-script",
-			MountPath: fmt.Sprintf("/home/foundryuser/expedio-kontract-deployer/script/%s.s.sol", contractVersion.Spec.ContractName),
+			MountPath: "/home/foundryuser/expedio-kontract-deployer/script/script.s.sol",
 			SubPath:   "script",
 		})
 	}

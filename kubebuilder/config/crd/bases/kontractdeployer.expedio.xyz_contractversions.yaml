@@ -66,6 +66,8 @@ spec:
                 type: array
               networkRef:
                 type: string
+              script:
+                type: string
               test:
                 type: string
               walletRef:
