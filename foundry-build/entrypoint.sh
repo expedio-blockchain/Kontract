@@ -50,7 +50,7 @@ print_separator
 
 # Determine the contract name dynamically
 CONTRACT_FILE="src/${CONTRACT_NAME}.sol"
-SCRIPT_FILE="script/${CONTRACT_NAME}.s.sol"
+SCRIPT_FILE="script/script.s.sol"
 
 log "Deploying the contract $CONTRACT_NAME..."
 print_separator
@@ -66,7 +66,7 @@ FULL_RPC_URL="${RPC_URL}${RPC_KEY}"
 # Deploy the contract and capture the deployed address
 DEPLOY_OUTPUT_FILE=$(mktemp)
 
-if [ -n "$SCRIPT" ]; then
+if [ -f "$SCRIPT_FILE" ]; then
     log "Running deployment script..."
     log "forge script $SCRIPT_FILE --rpc-url $FULL_RPC_URL --private-key ************ --broadcast"
     forge script "$SCRIPT_FILE" --rpc-url "$FULL_RPC_URL" --private-key "$WALLET_PRV_KEY" --broadcast | tee "$DEPLOY_OUTPUT_FILE"
