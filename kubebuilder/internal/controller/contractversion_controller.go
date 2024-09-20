@@ -251,86 +251,56 @@ func (r *ContractVersionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		})
 	}
 
-	job := &batchv1.Job{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("contract-deploy-%s", contractVersion.Name),
-			Namespace: req.Namespace,
-		},
-		Spec: batchv1.JobSpec{
-			Template: corev1.PodTemplateSpec{
-				Spec: corev1.PodSpec{
-					Containers: []corev1.Container{
-						{
-							Name:  "foundry",
-							Image: "docker.io/expedio/foundry:latest",
-							Env: []corev1.EnvVar{
-								{
-									Name: "RPC_URL",
-									ValueFrom: &corev1.EnvVarSource{
-										SecretKeyRef: &corev1.SecretKeySelector{
-											LocalObjectReference: corev1.LocalObjectReference{
-												Name: rpcProvider.Spec.SecretRef.Name,
-											},
-											Key: rpcProvider.Spec.SecretRef.URLKey,
-										},
-									},
-								},
-								{
-									Name: "RPC_KEY",
-									ValueFrom: &corev1.EnvVarSource{
-										SecretKeyRef: &corev1.SecretKeySelector{
-											LocalObjectReference: corev1.LocalObjectReference{
-												Name: rpcProvider.Spec.SecretRef.Name,
-											},
-											Key: rpcProvider.Spec.SecretRef.TokenKey,
-										},
-									},
-								},
-								{
-									Name: "WALLET_PRV_KEY",
-									ValueFrom: &corev1.EnvVarSource{
-										SecretKeyRef: &corev1.SecretKeySelector{
-											LocalObjectReference: corev1.LocalObjectReference{
-												Name: wallet.Status.SecretRef,
-											},
-											Key: "privateKey",
-										},
-									},
-								},
-								{
-									Name:  "CONTRACT_NAME",
-									Value: contractVersion.Spec.ContractName,
-								},
-								{
-									Name:  "EXTERNAL_MODULES",
-									Value: strings.Join(contractVersion.Spec.ExternalModules, " "),
-								},
-								{
-									Name:  "LOCAL_MODULES",
-									Value: strings.Join(localModuleNames, " "),
-								},
-							},
-							VolumeMounts: volumeMounts,
-						},
+	// Define environment variables for the job
+	envVars := []corev1.EnvVar{
+		{
+			Name: "RPC_URL",
+			ValueFrom: &corev1.EnvVarSource{
+				SecretKeyRef: &corev1.SecretKeySelector{
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: rpcProvider.Spec.SecretRef.Name,
 					},
-					Volumes:       volumes,
-					RestartPolicy: corev1.RestartPolicyOnFailure,
+					Key: rpcProvider.Spec.SecretRef.URLKey,
 				},
 			},
 		},
+		{
+			Name: "WALLET_PRV_KEY",
+			ValueFrom: &corev1.EnvVarSource{
+				SecretKeyRef: &corev1.SecretKeySelector{
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: wallet.Status.SecretRef,
+					},
+					Key: "privateKey",
+				},
+			},
+		},
+		{
+			Name:  "CONTRACT_NAME",
+			Value: contractVersion.Spec.ContractName,
+		},
+		{
+			Name:  "EXTERNAL_MODULES",
+			Value: strings.Join(contractVersion.Spec.ExternalModules, " "),
+		},
+		{
+			Name:  "LOCAL_MODULES",
+			Value: strings.Join(localModuleNames, " "),
+		},
 	}
 
-	// Convert InitParams to JSON if not empty
-	if len(contractVersion.Spec.InitParams) > 0 {
-		initParamsJSON, err := json.Marshal(contractVersion.Spec.InitParams)
-		if err != nil {
-			logger.Error(err, "Failed to marshal InitParams to JSON")
-			return ctrl.Result{}, err
-		}
-		// Add InitParams JSON to the job environment variables
-		job.Spec.Template.Spec.Containers[0].Env = append(job.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
-			Name:  "INIT_PARAMS",
-			Value: string(initParamsJSON),
+	// Conditionally add the RPC_KEY environment variable
+	if rpcProvider.Spec.SecretRef.TokenKey != "" {
+		envVars = append(envVars, corev1.EnvVar{
+			Name: "RPC_KEY",
+			ValueFrom: &corev1.EnvVarSource{
+				SecretKeyRef: &corev1.SecretKeySelector{
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: rpcProvider.Spec.SecretRef.Name,
+					},
+					Key: rpcProvider.Spec.SecretRef.TokenKey,
+				},
+			},
 		})
 	}
 
@@ -347,7 +317,7 @@ func (r *ContractVersionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 
 	// Add BlockExplorer details to the job environment variables if it exists
 	if blockExplorer != nil {
-		job.Spec.Template.Spec.Containers[0].Env = append(job.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
+		envVars = append(envVars, corev1.EnvVar{
 			Name: "ETHERSCAN_API_URL",
 			ValueFrom: &corev1.EnvVarSource{
 				SecretKeyRef: &corev1.SecretKeySelector{
@@ -371,10 +341,48 @@ func (r *ContractVersionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	}
 
 	// Add Chain ID to the job environment variables
-	job.Spec.Template.Spec.Containers[0].Env = append(job.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
+	envVars = append(envVars, corev1.EnvVar{
 		Name:  "CHAIN_ID",
 		Value: fmt.Sprintf("%d", network.Spec.ChainID),
 	})
+
+	// Now, use the envVars when defining the job
+	job := &batchv1.Job{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      fmt.Sprintf("contract-deploy-%s", contractVersion.Name),
+			Namespace: req.Namespace,
+		},
+		Spec: batchv1.JobSpec{
+			Template: corev1.PodTemplateSpec{
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{
+						{
+							Name:         "foundry",
+							Image:        "docker.io/expedio/foundry:latest",
+							Env:          envVars,
+							VolumeMounts: volumeMounts,
+						},
+					},
+					Volumes:       volumes,
+					RestartPolicy: corev1.RestartPolicyOnFailure,
+				},
+			},
+		},
+	}
+
+	// Convert InitParams to JSON if not empty
+	if len(contractVersion.Spec.InitParams) > 0 {
+		initParamsJSON, err := json.Marshal(contractVersion.Spec.InitParams)
+		if err != nil {
+			logger.Error(err, "Failed to marshal InitParams to JSON")
+			return ctrl.Result{}, err
+		}
+		// Add InitParams JSON to the job environment variables
+		job.Spec.Template.Spec.Containers[0].Env = append(job.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
+			Name:  "INIT_PARAMS",
+			Value: string(initParamsJSON),
+		})
+	}
 
 	// Set ContractVersion instance as the owner and controller of the Job
 	if err := controllerutil.SetControllerReference(contractVersion, job, r.Scheme); err != nil {
