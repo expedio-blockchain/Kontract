@@ -255,8 +255,7 @@ func (r *NetworkReconciler) createAnvilRPCProvider(ctx context.Context, network 
 				Namespace: network.Namespace,
 			},
 			StringData: map[string]string{
-				"tokenKey": "/",
-				"urlKey":   "http://anvil-service:8545",
+				"urlKey": fmt.Sprintf("http://anvil-service.%s.svc.cluster.local:8545", network.Namespace),
 			},
 		}
 
