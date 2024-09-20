@@ -122,58 +122,78 @@ func (r *NetworkReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 func (r *NetworkReconciler) createAnvilResources(ctx context.Context, network *kontractdeployerv1alpha1.Network) error {
 	logger := log.FromContext(ctx)
 
-	// Define the Anvil Pod
-	pod := &corev1.Pod{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "anvil-pod",
-			Namespace: network.Namespace,
-			Labels:    map[string]string{"app": "anvil"},
-		},
-		Spec: corev1.PodSpec{
-			Containers: []corev1.Container{
-				{
-					Name:    "anvil",
-					Image:   "docker.io/expedio/foundry:latest",
-					Command: []string{"anvil", "--chain-id", fmt.Sprintf("%d", network.Spec.ChainID)},
-					Ports: []corev1.ContainerPort{
-						{
-							ContainerPort: 8545,
-							HostPort:      8545,
+	// Check if the Anvil Pod already exists
+	pod := &corev1.Pod{}
+	err := r.Get(ctx, client.ObjectKey{Name: "anvil-pod", Namespace: network.Namespace}, pod)
+	if err == nil {
+		logger.Info("Anvil Pod already exists")
+	} else if client.IgnoreNotFound(err) != nil {
+		logger.Error(err, "failed to get Anvil Pod")
+		return err
+	} else {
+		// Define the Anvil Pod
+		pod = &corev1.Pod{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "anvil-pod",
+				Namespace: network.Namespace,
+				Labels:    map[string]string{"app": "anvil"},
+			},
+			Spec: corev1.PodSpec{
+				Containers: []corev1.Container{
+					{
+						Name:    "anvil",
+						Image:   "docker.io/expedio/foundry:latest",
+						Command: []string{"anvil", "--chain-id", fmt.Sprintf("%d", network.Spec.ChainID)},
+						Ports: []corev1.ContainerPort{
+							{
+								ContainerPort: 8545,
+								HostPort:      8545,
+							},
 						},
 					},
 				},
 			},
-		},
+		}
+
+		// Create the Pod
+		if err := r.Create(ctx, pod); err != nil {
+			logger.Error(err, "failed to create Anvil Pod")
+			return err
+		}
 	}
 
-	// Create the Pod
-	if err := r.Create(ctx, pod); err != nil {
-		logger.Error(err, "failed to create Anvil Pod")
+	// Check if the Anvil Service already exists
+	service := &corev1.Service{}
+	err = r.Get(ctx, client.ObjectKey{Name: "anvil-service", Namespace: network.Namespace}, service)
+	if err == nil {
+		logger.Info("Anvil Service already exists")
+	} else if client.IgnoreNotFound(err) != nil {
+		logger.Error(err, "failed to get Anvil Service")
 		return err
-	}
-
-	// Define the Anvil Service
-	service := &corev1.Service{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "anvil-service",
-			Namespace: network.Namespace,
-			Labels:    map[string]string{"app": "anvil"},
-		},
-		Spec: corev1.ServiceSpec{
-			Selector: map[string]string{"app": "anvil"},
-			Ports: []corev1.ServicePort{
-				{
-					Port:     8545,
-					Protocol: corev1.ProtocolTCP,
+	} else {
+		// Define the Anvil Service
+		service = &corev1.Service{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "anvil-service",
+				Namespace: network.Namespace,
+				Labels:    map[string]string{"app": "anvil"},
+			},
+			Spec: corev1.ServiceSpec{
+				Selector: map[string]string{"app": "anvil"},
+				Ports: []corev1.ServicePort{
+					{
+						Port:     8545,
+						Protocol: corev1.ProtocolTCP,
+					},
 				},
 			},
-		},
-	}
+		}
 
-	// Create the Service
-	if err := r.Create(ctx, service); err != nil {
-		logger.Error(err, "failed to create Anvil Service")
-		return err
+		// Create the Service
+		if err := r.Create(ctx, service); err != nil {
+			logger.Error(err, "failed to create Anvil Service")
+			return err
+		}
 	}
 
 	// Create the RPCProvider and Secret for Anvil
@@ -189,44 +209,64 @@ func (r *NetworkReconciler) createAnvilResources(ctx context.Context, network *k
 func (r *NetworkReconciler) createAnvilRPCProvider(ctx context.Context, network *kontractdeployerv1alpha1.Network) error {
 	logger := log.FromContext(ctx)
 
-	// Define the Secret
-	secret := &corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "anvil-rpc-secret",
-			Namespace: network.Namespace,
-		},
-		StringData: map[string]string{
-			"tokenKey": "",
-			"urlKey":   "http://anvil-service:8545",
-		},
-	}
-
-	// Create the Secret
-	if err := r.Create(ctx, secret); err != nil {
-		logger.Error(err, "failed to create Anvil RPC Secret")
+	// Check if the Anvil RPC Secret already exists
+	secret := &corev1.Secret{}
+	err := r.Get(ctx, client.ObjectKey{Name: "anvil-rpc-secret", Namespace: network.Namespace}, secret)
+	if err == nil {
+		logger.Info("Anvil RPC Secret already exists")
+	} else if client.IgnoreNotFound(err) != nil {
+		logger.Error(err, "failed to get Anvil RPC Secret")
 		return err
-	}
-
-	// Define the RPCProvider
-	rpcProvider := &kontractdeployerv1alpha1.RPCProvider{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "anvil-rpc-provider",
-			Namespace: network.Namespace,
-		},
-		Spec: kontractdeployerv1alpha1.RPCProviderSpec{
-			ProviderName: "Anvil",
-			SecretRef: kontractdeployerv1alpha1.SecretKeyReference{
-				Name:     "anvil-rpc-secret",
-				TokenKey: "tokenKey",
-				URLKey:   "urlKey",
+	} else {
+		// Define the Secret
+		secret = &corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "anvil-rpc-secret",
+				Namespace: network.Namespace,
 			},
-		},
+			StringData: map[string]string{
+				"tokenKey": "",
+				"urlKey":   "http://anvil-service:8545",
+			},
+		}
+
+		// Create the Secret
+		if err := r.Create(ctx, secret); err != nil {
+			logger.Error(err, "failed to create Anvil RPC Secret")
+			return err
+		}
 	}
 
-	// Create the RPCProvider
-	if err := r.Create(ctx, rpcProvider); err != nil {
-		logger.Error(err, "failed to create Anvil RPCProvider")
+	// Check if the Anvil RPCProvider already exists
+	rpcProvider := &kontractdeployerv1alpha1.RPCProvider{}
+	err = r.Get(ctx, client.ObjectKey{Name: "anvil-rpc-provider", Namespace: network.Namespace}, rpcProvider)
+	if err == nil {
+		logger.Info("Anvil RPCProvider already exists")
+	} else if client.IgnoreNotFound(err) != nil {
+		logger.Error(err, "failed to get Anvil RPCProvider")
 		return err
+	} else {
+		// Define the RPCProvider
+		rpcProvider = &kontractdeployerv1alpha1.RPCProvider{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "anvil-rpc-provider",
+				Namespace: network.Namespace,
+			},
+			Spec: kontractdeployerv1alpha1.RPCProviderSpec{
+				ProviderName: "Anvil",
+				SecretRef: kontractdeployerv1alpha1.SecretKeyReference{
+					Name:     "anvil-rpc-secret",
+					TokenKey: "tokenKey",
+					URLKey:   "urlKey",
+				},
+			},
+		}
+
+		// Create the RPCProvider
+		if err := r.Create(ctx, rpcProvider); err != nil {
+			logger.Error(err, "failed to create Anvil RPCProvider")
+			return err
+		}
 	}
 
 	return nil
@@ -236,47 +276,67 @@ func (r *NetworkReconciler) createAnvilRPCProvider(ctx context.Context, network 
 func (r *NetworkReconciler) createAnvilWallet(ctx context.Context, network *kontractdeployerv1alpha1.Network) error {
 	logger := log.FromContext(ctx)
 
-	// Define the Secret for the Anvil wallet
-	secret := &corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "anvil-wallet-secret",
-			Namespace: network.Namespace,
-		},
-		StringData: map[string]string{
-			"privateKey": "***REMOVED***",
-			"publicKey":  "***REMOVED***",
-		},
-	}
-
-	// Create the Secret
-	if err := r.Create(ctx, secret); err != nil {
-		logger.Error(err, "failed to create Anvil Wallet Secret")
+	// Check if the Anvil Wallet Secret already exists
+	secret := &corev1.Secret{}
+	err := r.Get(ctx, client.ObjectKey{Name: "anvil-wallet-secret", Namespace: network.Namespace}, secret)
+	if err == nil {
+		logger.Info("Anvil Wallet Secret already exists")
+	} else if client.IgnoreNotFound(err) != nil {
+		logger.Error(err, "failed to get Anvil Wallet Secret")
 		return err
+	} else {
+		// Define the Secret for the Anvil wallet
+		secret = &corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "anvil-wallet-secret",
+				Namespace: network.Namespace,
+			},
+			StringData: map[string]string{
+				"privateKey": "***REMOVED***",
+				"publicKey":  "***REMOVED***",
+			},
+		}
+
+		// Create the Secret
+		if err := r.Create(ctx, secret); err != nil {
+			logger.Error(err, "failed to create Anvil Wallet Secret")
+			return err
+		}
 	}
 
-	// Define the Wallet
-	wallet := &kontractdeployerv1alpha1.Wallet{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "anvil-wallet",
-			Namespace: network.Namespace,
-		},
-		Spec: kontractdeployerv1alpha1.WalletSpec{
-			WalletType: "EOA",
-			NetworkRef: network.Name,
-			ImportFrom: &kontractdeployerv1alpha1.ImportFromSpec{
+	// Check if the Anvil Wallet already exists
+	wallet := &kontractdeployerv1alpha1.Wallet{}
+	err = r.Get(ctx, client.ObjectKey{Name: "anvil-wallet", Namespace: network.Namespace}, wallet)
+	if err == nil {
+		logger.Info("Anvil Wallet already exists")
+	} else if client.IgnoreNotFound(err) != nil {
+		logger.Error(err, "failed to get Anvil Wallet")
+		return err
+	} else {
+		// Define the Wallet
+		wallet = &kontractdeployerv1alpha1.Wallet{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "anvil-wallet",
+				Namespace: network.Namespace,
+			},
+			Spec: kontractdeployerv1alpha1.WalletSpec{
+				WalletType: "EOA",
+				NetworkRef: network.Name,
+				ImportFrom: &kontractdeployerv1alpha1.ImportFromSpec{
+					SecretRef: "anvil-wallet-secret",
+				},
+			},
+			Status: kontractdeployerv1alpha1.WalletStatus{
+				PublicKey: "***REMOVED***",
 				SecretRef: "anvil-wallet-secret",
 			},
-		},
-		Status: kontractdeployerv1alpha1.WalletStatus{
-			PublicKey: "***REMOVED***",
-			SecretRef: "anvil-wallet-secret",
-		},
-	}
+		}
 
-	// Create the Wallet
-	if err := r.Create(ctx, wallet); err != nil {
-		logger.Error(err, "failed to create Anvil Wallet")
-		return err
+		// Create the Wallet
+		if err := r.Create(ctx, wallet); err != nil {
+			logger.Error(err, "failed to create Anvil Wallet")
+			return err
+		}
 	}
 
 	return nil
