@@ -173,7 +173,7 @@ func (r *NetworkReconciler) createAnvilResources(ctx context.Context, network *k
 					{
 						Name:    "anvil",
 						Image:   "docker.io/expedio/foundry:latest",
-						Command: []string{"anvil", "--chain-id", fmt.Sprintf("%d", network.Spec.ChainID)},
+						Command: []string{"anvil", "--chain-id", fmt.Sprintf("%d", network.Spec.ChainID), "--host", "0.0.0.0"},
 						Ports: []corev1.ContainerPort{
 							{
 								ContainerPort: 8545,
