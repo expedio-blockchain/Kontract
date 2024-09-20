@@ -1,7 +1,7 @@
 apiVersion: kontractdeployer.expedio.xyz/v1alpha1
 kind: Network
 metadata:
-  name: amoy
+  name: anvil
 spec:
   networkName: anvil
   chainID: 1
