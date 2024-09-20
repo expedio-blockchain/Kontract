@@ -1,0 +1,9 @@
+apiVersion: kontractdeployer.expedio.xyz/v1alpha1
+kind: Network
+metadata:
+  name: amoy
+spec:
+  networkName: anvil
+  chainID: 1
+  rpcProviderRef:
+    name: anvil
