@@ -284,9 +284,8 @@ func (r *NetworkReconciler) createAnvilRPCProvider(ctx context.Context, network 
 			Spec: kontractdeployerv1alpha1.RPCProviderSpec{
 				ProviderName: "Anvil",
 				SecretRef: kontractdeployerv1alpha1.SecretKeyReference{
-					Name:     "anvil-rpc-secret",
-					TokenKey: "tokenKey",
-					URLKey:   "urlKey",
+					Name:   "anvil-rpc-secret",
+					URLKey: "urlKey",
 				},
 			},
 		}

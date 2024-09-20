@@ -26,7 +26,8 @@ type SecretKeyReference struct {
 	Name string `json:"name"`
 
 	// TokenKey is the key within the secret that contains the API token
-	TokenKey string `json:"tokenKey"`
+	// +optional
+	TokenKey string `json:"tokenKey,omitempty"`
 
 	// URLKey is the key within the secret that contains the API endpoint URL
 	URLKey string `json:"urlKey"`
