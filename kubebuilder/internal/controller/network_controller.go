@@ -60,6 +60,10 @@ func (r *NetworkReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 			logger.Error(err, "failed to create Anvil resources")
 			return ctrl.Result{}, err
 		}
+		if err := r.createAnvilWallet(ctx, &network); err != nil {
+			logger.Error(err, "failed to create Anvil wallet")
+			return ctrl.Result{}, err
+		}
 	}
 
 	// Fetch the referenced RPCProvider
@@ -177,7 +181,7 @@ func (r *NetworkReconciler) createAnvilRPCProvider(ctx context.Context, network 
 		},
 		StringData: map[string]string{
 			"tokenKey": "",
-			"urlKey":   "http://127.0.0.1:8545",
+			"urlKey":   "http://anvil-service:8545",
 		},
 	}
 
@@ -206,6 +210,56 @@ func (r *NetworkReconciler) createAnvilRPCProvider(ctx context.Context, network 
 	// Create the RPCProvider
 	if err := r.Create(ctx, rpcProvider); err != nil {
 		logger.Error(err, "failed to create Anvil RPCProvider")
+		return err
+	}
+
+	return nil
+}
+
+// createAnvilWallet creates a Wallet and Secret for the Anvil network
+func (r *NetworkReconciler) createAnvilWallet(ctx context.Context, network *kontractdeployerv1alpha1.Network) error {
+	logger := log.FromContext(ctx)
+
+	// Define the Secret for the Anvil wallet
+	secret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "anvil-wallet-secret",
+			Namespace: network.Namespace,
+		},
+		StringData: map[string]string{
+			"privateKey": "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
+			"publicKey":  "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+		},
+	}
+
+	// Create the Secret
+	if err := r.Create(ctx, secret); err != nil {
+		logger.Error(err, "failed to create Anvil Wallet Secret")
+		return err
+	}
+
+	// Define the Wallet
+	wallet := &kontractdeployerv1alpha1.Wallet{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "anvil-wallet",
+			Namespace: network.Namespace,
+		},
+		Spec: kontractdeployerv1alpha1.WalletSpec{
+			WalletType: "EOA",
+			NetworkRef: network.Name,
+			ImportFrom: &kontractdeployerv1alpha1.ImportFromSpec{
+				SecretRef: "anvil-wallet-secret",
+			},
+		},
+		Status: kontractdeployerv1alpha1.WalletStatus{
+			PublicKey: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+			SecretRef: "anvil-wallet-secret",
+		},
+	}
+
+	// Create the Wallet
+	if err := r.Create(ctx, wallet); err != nil {
+		logger.Error(err, "failed to create Anvil Wallet")
 		return err
 	}
 
