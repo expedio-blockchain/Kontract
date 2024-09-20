@@ -58,6 +58,8 @@ type NetworkReconciler struct {
 // Grant permissions to manage RPCProviders
 // +kubebuilder:rbac:groups=kontractdeployer.expedio.xyz,resources=rpcproviders,verbs=get;list;watch;create;update;patch;delete
 
+const networkFinalizer = "kontractdeployer.expedio.xyz/network-finalizer"
+
 // Reconcile is part of the main Kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
 func (r *NetworkReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
@@ -68,6 +70,34 @@ func (r *NetworkReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	if err := r.Get(ctx, req.NamespacedName, &network); err != nil {
 		logger.Error(err, "unable to fetch Network")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
+	// Check if the Network instance is marked for deletion
+	if network.ObjectMeta.DeletionTimestamp.IsZero() {
+		// The object is not being deleted, so if it doesn't have our finalizer, add it
+		if !containsString(network.ObjectMeta.Finalizers, networkFinalizer) {
+			network.ObjectMeta.Finalizers = append(network.ObjectMeta.Finalizers, networkFinalizer)
+			if err := r.Update(ctx, &network); err != nil {
+				return ctrl.Result{}, err
+			}
+		}
+	} else {
+		// The object is being deleted
+		if containsString(network.ObjectMeta.Finalizers, networkFinalizer) {
+			// Our finalizer is present, so let's handle any external dependency
+			if err := r.deleteAnvilResources(ctx, &network); err != nil {
+				return ctrl.Result{}, err
+			}
+
+			// Remove our finalizer from the list and update it
+			network.ObjectMeta.Finalizers = removeString(network.ObjectMeta.Finalizers, networkFinalizer)
+			if err := r.Update(ctx, &network); err != nil {
+				return ctrl.Result{}, err
+			}
+		}
+
+		// Stop reconciliation as the item is being deleted
+		return ctrl.Result{}, nil
 	}
 
 	// Handle Anvil network creation
@@ -225,7 +255,7 @@ func (r *NetworkReconciler) createAnvilRPCProvider(ctx context.Context, network 
 				Namespace: network.Namespace,
 			},
 			StringData: map[string]string{
-				"tokenKey": "",
+				"tokenKey": "/",
 				"urlKey":   "http://anvil-service:8545",
 			},
 		}
@@ -239,7 +269,7 @@ func (r *NetworkReconciler) createAnvilRPCProvider(ctx context.Context, network 
 
 	// Check if the Anvil RPCProvider already exists
 	rpcProvider := &kontractdeployerv1alpha1.RPCProvider{}
-	err = r.Get(ctx, client.ObjectKey{Name: "anvil-rpc-provider", Namespace: network.Namespace}, rpcProvider)
+	err = r.Get(ctx, client.ObjectKey{Name: "anvil", Namespace: network.Namespace}, rpcProvider)
 	if err == nil {
 		logger.Info("Anvil RPCProvider already exists")
 	} else if client.IgnoreNotFound(err) != nil {
@@ -249,7 +279,7 @@ func (r *NetworkReconciler) createAnvilRPCProvider(ctx context.Context, network 
 		// Define the RPCProvider
 		rpcProvider = &kontractdeployerv1alpha1.RPCProvider{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      "anvil-rpc-provider",
+				Name:      "anvil",
 				Namespace: network.Namespace,
 			},
 			Spec: kontractdeployerv1alpha1.RPCProviderSpec{
@@ -340,6 +370,111 @@ func (r *NetworkReconciler) createAnvilWallet(ctx context.Context, network *kont
 	}
 
 	return nil
+}
+
+// deleteAnvilResources deletes all resources related to the Anvil network
+func (r *NetworkReconciler) deleteAnvilResources(ctx context.Context, network *kontractdeployerv1alpha1.Network) error {
+	logger := log.FromContext(ctx)
+
+	// Delete the Anvil Pod
+	pod := &corev1.Pod{}
+	err := r.Get(ctx, client.ObjectKey{Name: "anvil-pod", Namespace: network.Namespace}, pod)
+	if err == nil {
+		if err := r.Delete(ctx, pod); err != nil {
+			logger.Error(err, "failed to delete Anvil Pod")
+			return err
+		}
+	} else if client.IgnoreNotFound(err) != nil {
+		logger.Error(err, "failed to get Anvil Pod")
+		return err
+	}
+
+	// Delete the Anvil Service
+	service := &corev1.Service{}
+	err = r.Get(ctx, client.ObjectKey{Name: "anvil-service", Namespace: network.Namespace}, service)
+	if err == nil {
+		if err := r.Delete(ctx, service); err != nil {
+			logger.Error(err, "failed to delete Anvil Service")
+			return err
+		}
+	} else if client.IgnoreNotFound(err) != nil {
+		logger.Error(err, "failed to get Anvil Service")
+		return err
+	}
+
+	// Delete the Anvil Wallet Secret
+	secret := &corev1.Secret{}
+	err = r.Get(ctx, client.ObjectKey{Name: "anvil-wallet-secret", Namespace: network.Namespace}, secret)
+	if err == nil {
+		if err := r.Delete(ctx, secret); err != nil {
+			logger.Error(err, "failed to delete Anvil Wallet Secret")
+			return err
+		}
+	} else if client.IgnoreNotFound(err) != nil {
+		logger.Error(err, "failed to get Anvil Wallet Secret")
+		return err
+	}
+
+	// Delete the Anvil Wallet
+	wallet := &kontractdeployerv1alpha1.Wallet{}
+	err = r.Get(ctx, client.ObjectKey{Name: "anvil-wallet", Namespace: network.Namespace}, wallet)
+	if err == nil {
+		if err := r.Delete(ctx, wallet); err != nil {
+			logger.Error(err, "failed to delete Anvil Wallet")
+			return err
+		}
+	} else if client.IgnoreNotFound(err) != nil {
+		logger.Error(err, "failed to get Anvil Wallet")
+		return err
+	}
+
+	// Delete the Anvil RPCProvider Secret
+	rpcSecret := &corev1.Secret{}
+	err = r.Get(ctx, client.ObjectKey{Name: "anvil-rpc-secret", Namespace: network.Namespace}, rpcSecret)
+	if err == nil {
+		if err := r.Delete(ctx, rpcSecret); err != nil {
+			logger.Error(err, "failed to delete Anvil RPC Secret")
+			return err
+		}
+	} else if client.IgnoreNotFound(err) != nil {
+		logger.Error(err, "failed to get Anvil RPC Secret")
+		return err
+	}
+
+	// Delete the Anvil RPCProvider
+	rpcProvider := &kontractdeployerv1alpha1.RPCProvider{}
+	err = r.Get(ctx, client.ObjectKey{Name: "anvil", Namespace: network.Namespace}, rpcProvider)
+	if err == nil {
+		if err := r.Delete(ctx, rpcProvider); err != nil {
+			logger.Error(err, "failed to delete Anvil RPCProvider")
+			return err
+		}
+	} else if client.IgnoreNotFound(err) != nil {
+		logger.Error(err, "failed to get Anvil RPCProvider")
+		return err
+	}
+
+	return nil
+}
+
+// Helper functions to manage finalizers
+func containsString(slice []string, s string) bool {
+	for _, item := range slice {
+		if item == s {
+			return true
+		}
+	}
+	return false
+}
+
+func removeString(slice []string, s string) []string {
+	var result []string
+	for _, item := range slice {
+		if item != s {
+			result = append(result, item)
+		}
+	}
+	return result
 }
 
 // SetupWithManager sets up the controller with the Manager.
