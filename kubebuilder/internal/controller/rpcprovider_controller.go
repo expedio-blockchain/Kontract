@@ -135,7 +135,7 @@ func (r *RPCProviderReconciler) checkAllRPCProviders(ctx context.Context) {
 		// Perform the health check
 		if err := r.checkAPIHealth(ctx, url, rpcProvider.Name); err != nil {
 			log.Error(err, fmt.Sprintf("RPCProvider (%s) - API health check failed", rpcProvider.Name))
-			r.updateStatus(ctx, &rpcProvider, false, "")
+			r.updateStatus(ctx, &rpcProvider, false, urlKey)
 			r.Recorder.Event(&rpcProvider, corev1.EventTypeWarning, "APIHealthCheckFailed", "API health check failed")
 			continue
 		}
