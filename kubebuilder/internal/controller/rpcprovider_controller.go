@@ -112,18 +112,24 @@ func (r *RPCProviderReconciler) checkAllRPCProviders(ctx context.Context) {
 		}
 
 		// Extract tokenKey and urlKey from the secret
-		tokenKey := string(secret.Data[rpcProvider.Spec.SecretRef.TokenKey])
 		urlKey := string(secret.Data[rpcProvider.Spec.SecretRef.URLKey])
+		tokenKey := ""
+		if rpcProvider.Spec.SecretRef.TokenKey != "" {
+			tokenKey = string(secret.Data[rpcProvider.Spec.SecretRef.TokenKey])
+		}
 
-		// Validate the existence of tokenKey and urlKey
-		if tokenKey == "" || urlKey == "" {
-			log.Error(fmt.Errorf("missing token key or URL key"), fmt.Sprintf("RPCProvider (%s) - missing required data in Secret", rpcProvider.Name))
+		// Validate the existence of urlKey
+		if urlKey == "" {
+			log.Error(fmt.Errorf("missing URL key"), fmt.Sprintf("RPCProvider (%s) - missing required data in Secret", rpcProvider.Name))
 			r.updateStatus(ctx, &rpcProvider, false, "")
 			continue
 		}
 
 		// Construct the URL for the health check without logging the API key
-		url := fmt.Sprintf("%s/%s", strings.TrimRight(urlKey, "/"), tokenKey)
+		url := strings.TrimRight(urlKey, "/")
+		if tokenKey != "" {
+			url = fmt.Sprintf("%s/%s", url, tokenKey)
+		}
 		log.Info(fmt.Sprintf("RPCProvider (%s) - Performing periodic API health check", rpcProvider.Name))
 
 		// Perform the health check

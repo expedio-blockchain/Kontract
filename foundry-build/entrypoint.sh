@@ -55,13 +55,17 @@ SCRIPT_FILE="script/script.s.sol"
 log "Deploying the contract $CONTRACT_NAME..."
 print_separator
 
-# Check if RPC_URL ends with a "/" and add it if not
-if [[ "${RPC_URL}" != */ ]]; then
-    RPC_URL="${RPC_URL}/"
+# Check if RPC_URL ends with a "/" and add remove
+if [[ "${RPC_URL}" == */ ]]; then
+    RPC_URL="${RPC_URL%/}"
 fi
 
-# Combine the RPC URL and RPC Key
-FULL_RPC_URL="${RPC_URL}${RPC_KEY}"
+# Combine the RPC URL and RPC Key if RPC_KEY is specified
+if [ -n "$RPC_KEY" ]; then
+    FULL_RPC_URL="${RPC_URL}/${RPC_KEY}"
+else
+    FULL_RPC_URL="${RPC_URL}"
+fi
 
 # Deploy the contract and capture the deployed address
 DEPLOY_OUTPUT_FILE=$(mktemp)
