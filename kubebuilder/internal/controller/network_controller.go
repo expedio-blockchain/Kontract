@@ -18,6 +18,7 @@ package controller
 
 import (
 	"context"
+	"fmt"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/record"
@@ -26,6 +27,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	kontractdeployerv1alpha1 "github.com/expedio-blockchain/KontractDeployer/api/v1alpha1"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // NetworkReconciler reconciles a Network object
@@ -49,6 +52,14 @@ func (r *NetworkReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	if err := r.Get(ctx, req.NamespacedName, &network); err != nil {
 		logger.Error(err, "unable to fetch Network")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
+	// Handle Anvil network creation
+	if network.Spec.NetworkName == "anvil" {
+		if err := r.createAnvilResources(ctx, &network); err != nil {
+			logger.Error(err, "failed to create Anvil resources")
+			return ctrl.Result{}, err
+		}
 	}
 
 	// Fetch the referenced RPCProvider
@@ -85,6 +96,120 @@ func (r *NetworkReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	}
 
 	return ctrl.Result{}, nil
+}
+
+// createAnvilResources creates a Pod and Service for the Anvil network
+func (r *NetworkReconciler) createAnvilResources(ctx context.Context, network *kontractdeployerv1alpha1.Network) error {
+	logger := log.FromContext(ctx)
+
+	// Define the Anvil Pod
+	pod := &corev1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "anvil-pod",
+			Namespace: network.Namespace,
+			Labels:    map[string]string{"app": "anvil"},
+		},
+		Spec: corev1.PodSpec{
+			Containers: []corev1.Container{
+				{
+					Name:    "anvil",
+					Image:   "docker.io/expedio/foundry:latest",
+					Command: []string{"anvil", "--chain-id", fmt.Sprintf("%d", network.Spec.ChainID)},
+					Ports: []corev1.ContainerPort{
+						{
+							ContainerPort: 8545,
+							HostPort:      8545,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// Create the Pod
+	if err := r.Create(ctx, pod); err != nil {
+		logger.Error(err, "failed to create Anvil Pod")
+		return err
+	}
+
+	// Define the Anvil Service
+	service := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "anvil-service",
+			Namespace: network.Namespace,
+			Labels:    map[string]string{"app": "anvil"},
+		},
+		Spec: corev1.ServiceSpec{
+			Selector: map[string]string{"app": "anvil"},
+			Ports: []corev1.ServicePort{
+				{
+					Port:     8545,
+					Protocol: corev1.ProtocolTCP,
+				},
+			},
+		},
+	}
+
+	// Create the Service
+	if err := r.Create(ctx, service); err != nil {
+		logger.Error(err, "failed to create Anvil Service")
+		return err
+	}
+
+	// Create the RPCProvider and Secret for Anvil
+	if err := r.createAnvilRPCProvider(ctx, network); err != nil {
+		logger.Error(err, "failed to create Anvil RPCProvider and Secret")
+		return err
+	}
+
+	return nil
+}
+
+// createAnvilRPCProvider creates an RPCProvider and Secret for the Anvil network
+func (r *NetworkReconciler) createAnvilRPCProvider(ctx context.Context, network *kontractdeployerv1alpha1.Network) error {
+	logger := log.FromContext(ctx)
+
+	// Define the Secret
+	secret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "anvil-rpc-secret",
+			Namespace: network.Namespace,
+		},
+		StringData: map[string]string{
+			"tokenKey": "",
+			"urlKey":   "http://127.0.0.1:8545",
+		},
+	}
+
+	// Create the Secret
+	if err := r.Create(ctx, secret); err != nil {
+		logger.Error(err, "failed to create Anvil RPC Secret")
+		return err
+	}
+
+	// Define the RPCProvider
+	rpcProvider := &kontractdeployerv1alpha1.RPCProvider{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "anvil-rpc-provider",
+			Namespace: network.Namespace,
+		},
+		Spec: kontractdeployerv1alpha1.RPCProviderSpec{
+			ProviderName: "Anvil",
+			SecretRef: kontractdeployerv1alpha1.SecretKeyReference{
+				Name:     "anvil-rpc-secret",
+				TokenKey: "tokenKey",
+				URLKey:   "urlKey",
+			},
+		},
+	}
+
+	// Create the RPCProvider
+	if err := r.Create(ctx, rpcProvider); err != nil {
+		logger.Error(err, "failed to create Anvil RPCProvider")
+		return err
+	}
+
+	return nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
