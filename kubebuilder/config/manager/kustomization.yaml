@@ -5,4 +5,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: docker.io/expedio/kontract-deployer
-  newTag: anvil-2
+  newTag: anvil-3
