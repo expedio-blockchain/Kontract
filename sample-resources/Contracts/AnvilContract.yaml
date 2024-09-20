@@ -1,0 +1,32 @@
+apiVersion: kontractdeployer.expedio.xyz/v1alpha1
+kind: Contract
+metadata:
+  name: anvil-contract
+spec:
+  contractName: AnvilContract
+  networkRefs:
+   - anvil
+  walletRef: anvil-wallet
+  gasStrategyRef: high-priority-gas
+  code: |
+    // SPDX-License-Identifier: MIT
+    pragma solidity ^0.8.9;
+    contract AnvilContract {
+      uint128 public value;
+      function setValue(uint128 newValue) public {
+        value = newValue;
+      }
+    }
+  test: |
+    // SPDX-License-Identifier: MIT
+    pragma solidity ^0.8.9;
+    import "src/AnvilContract.sol";
+    contract AnvilContractTest {
+      AnvilContract myContract;
+      function setUp() public {
+        myContract = new AnvilContract();
+      }
+      function testInitialValue() public {
+        myContract.setValue(1);
+      }
+    }
