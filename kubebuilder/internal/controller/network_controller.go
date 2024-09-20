@@ -42,6 +42,22 @@ type NetworkReconciler struct {
 // +kubebuilder:rbac:groups=kontractdeployer.expedio.xyz,resources=networks/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=kontractdeployer.expedio.xyz,resources=networks/finalizers,verbs=update
 
+// Grant permissions to create Pods
+// +kubebuilder:rbac:groups="",resources=pods,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups="",resources=pods/status,verbs=get;update;patch
+
+// Grant permissions to create Services
+// +kubebuilder:rbac:groups="",resources=services,verbs=get;list;watch;create;update;patch;delete
+
+// Grant permissions to create Secrets
+// +kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch;create;update;patch;delete
+
+// Grant permissions to manage Wallets
+// +kubebuilder:rbac:groups=kontractdeployer.expedio.xyz,resources=wallets,verbs=get;list;watch;create;update;patch;delete
+
+// Grant permissions to manage RPCProviders
+// +kubebuilder:rbac:groups=kontractdeployer.expedio.xyz,resources=rpcproviders,verbs=get;list;watch;create;update;patch;delete
+
 // Reconcile is part of the main Kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
 func (r *NetworkReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
@@ -268,6 +284,7 @@ func (r *NetworkReconciler) createAnvilWallet(ctx context.Context, network *kont
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *NetworkReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	r.EventRecorder = mgr.GetEventRecorderFor("network-controller")
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&kontractdeployerv1alpha1.Network{}).
 		Complete(r)
