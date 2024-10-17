@@ -34,20 +34,6 @@ fi
 log "Init Params: $PARAMS"
 print_separator
 
-# Build the contract
-log "Building the contract..."
-forge build
-print_separator
-
-# Check for test files and run tests if any exist
-if ls test/*.sol 1> /dev/null 2>&1; then
-    log "Running tests..."
-    forge test
-else
-    log "No tests found, skipping..."
-fi
-print_separator
-
 # Determine the contract name dynamically
 CONTRACT_FILE="src/${CONTRACT_NAME}.sol"
 SCRIPT_FILE="script/script.s.sol"
@@ -76,6 +62,15 @@ if [ -f "$SCRIPT_FILE" ]; then
     forge script "$SCRIPT_FILE" --rpc-url "$FULL_RPC_URL" --private-key "$WALLET_PRV_KEY" --broadcast | tee "$DEPLOY_OUTPUT_FILE"
     echo "Script completed."
 else
+    # Check for test files and run tests if any exist
+    if ls test/*.sol 1> /dev/null 2>&1; then
+        log "Running tests..."
+        forge test
+    else
+        log "No tests found, skipping..."
+    fi
+    print_separator
+
     if [ -n "$PARAMS" ] && [ -n "$ETHERSCAN_API_KEY" ]; then
         log "forge create $CONTRACT_FILE:$CONTRACT_NAME --rpc-url $FULL_RPC_URL --private-key ************ --constructor-args $PARAMS --verify --etherscan-api-key ************"
         forge create "$CONTRACT_FILE:$CONTRACT_NAME" --rpc-url "$FULL_RPC_URL" --private-key "$WALLET_PRV_KEY" --constructor-args $PARAMS --verify --etherscan-api-key "$ETHERSCAN_API_KEY" | tee "$DEPLOY_OUTPUT_FILE"

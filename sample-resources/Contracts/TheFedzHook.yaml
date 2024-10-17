@@ -1,3 +1,4 @@
+---
 apiVersion: kontractdeployer.expedio.xyz/v1alpha1
 kind: Contract
 metadata:
@@ -9,26 +10,34 @@ spec:
   walletRef: anvil-wallet
   gasStrategyRef: high-priority-gas
   externalModules:
-    - "uniswap/v4-core"
-    - "uniswap/v4-periphery"
+    - "uniswap/v4-core@3609d81"
+    - "uniswap/v4-periphery@f2f68ec"
   code: |
     // SPDX-License-Identifier: MIT
     pragma solidity ^0.8.24;
 
     import {BaseHook} from "lib/v4-periphery/src/base/hooks/BaseHook.sol";
+
     import {Hooks} from "v4-core/libraries/Hooks.sol";
     import {IPoolManager} from "v4-core/interfaces/IPoolManager.sol";
     import {PoolKey} from "v4-core/types/PoolKey.sol";
     import {PoolId, PoolIdLibrary} from "v4-core/types/PoolId.sol";
     import {BalanceDelta} from "v4-core/types/BalanceDelta.sol";
+    import {BeforeSwapDelta, BeforeSwapDeltaLibrary} from "v4-core/types/BeforeSwapDelta.sol";
 
     contract Counter is BaseHook {
         using PoolIdLibrary for PoolKey;
 
-        mapping(PoolId => uint256) public beforeSwapCount;
-        mapping(PoolId => uint256) public afterSwapCount;
-        mapping(PoolId => uint256) public beforeModifyPositionCount;
-        mapping(PoolId => uint256) public afterModifyPositionCount;
+        // NOTE: ---------------------------------------------------------
+        // state variables should typically be unique to a pool
+        // a single hook contract should be able to service multiple pools
+        // ---------------------------------------------------------------
+
+        mapping(PoolId => uint256 count) public beforeSwapCount;
+        mapping(PoolId => uint256 count) public afterSwapCount;
+
+        mapping(PoolId => uint256 count) public beforeAddLiquidityCount;
+        mapping(PoolId => uint256 count) public beforeRemoveLiquidityCount;
 
         constructor(IPoolManager _poolManager) BaseHook(_poolManager) {}
 
@@ -51,46 +60,46 @@ spec:
             });
         }
 
-        function beforeSwap(
-            address sender,
-            PoolKey calldata key,
-            IPoolManager.SwapParams calldata params,
-            bytes calldata data
-        ) external override returns (bytes4) {
+        // -----------------------------------------------
+        // NOTE: see IHooks.sol for function documentation
+        // -----------------------------------------------
+
+        function beforeSwap(address, PoolKey calldata key, IPoolManager.SwapParams calldata, bytes calldata)
+            external
+            override
+            returns (bytes4, BeforeSwapDelta, uint24)
+        {
             beforeSwapCount[key.toId()]++;
-            return BaseHook.beforeSwap.selector;
+            return (BaseHook.beforeSwap.selector, BeforeSwapDeltaLibrary.ZERO_DELTA, 0);
         }
 
-        function afterSwap(
-            address sender,
-            PoolKey calldata key,
-            IPoolManager.SwapParams calldata params,
-            BalanceDelta delta,
-            bytes calldata data
-        ) external override returns (bytes4) {
+        function afterSwap(address, PoolKey calldata key, IPoolManager.SwapParams calldata, BalanceDelta, bytes calldata)
+            external
+            override
+            returns (bytes4, int128)
+        {
             afterSwapCount[key.toId()]++;
-            return BaseHook.afterSwap.selector;
+            return (BaseHook.afterSwap.selector, 0);
         }
 
-        function beforeModifyPosition(
-            address sender,
+        function beforeAddLiquidity(
+            address,
             PoolKey calldata key,
-            IPoolManager.ModifyPositionParams calldata params,
-            bytes calldata data
+            IPoolManager.ModifyLiquidityParams calldata,
+            bytes calldata
         ) external override returns (bytes4) {
-            beforeModifyPositionCount[key.toId()]++;
-            return BaseHook.beforeModifyPosition.selector;
+            beforeAddLiquidityCount[key.toId()]++;
+            return BaseHook.beforeAddLiquidity.selector;
         }
 
-        function afterModifyPosition(
-            address sender,
+        function beforeRemoveLiquidity(
+            address,
             PoolKey calldata key,
-            IPoolManager.ModifyPositionParams calldata params,
-            BalanceDelta delta,
-            bytes calldata data
+            IPoolManager.ModifyLiquidityParams calldata,
+            bytes calldata
         ) external override returns (bytes4) {
-            afterModifyPositionCount[key.toId()]++;
-            return BaseHook.afterModifyPosition.selector;
+            beforeRemoveLiquidityCount[key.toId()]++;
+            return BaseHook.beforeRemoveLiquidity.selector;
         }
     }
   script: |
@@ -126,7 +135,8 @@ spec:
 
             // hook contracts must have specific flags encoded in the address
             uint160 permissions = uint160(
-                Hooks.BEFORE_SWAP_FLAG | Hooks.AFTER_SWAP_FLAG | Hooks.BEFORE_MODIFY_POSITION_FLAG | Hooks.AFTER_MODIFY_POSITION_FLAG
+                Hooks.BEFORE_SWAP_FLAG | Hooks.AFTER_SWAP_FLAG | Hooks.BEFORE_ADD_LIQUIDITY_FLAG
+                    | Hooks.BEFORE_REMOVE_LIQUIDITY_FLAG
             );
 
             // Mine a salt that will produce a hook address with the correct permissions
@@ -155,7 +165,7 @@ spec:
         // Helpers
         // -----------------------------------------------------------
         function deployPoolManager() internal returns (IPoolManager) {
-            return IPoolManager(address(new PoolManager()));
+            return IPoolManager(address(new PoolManager(500000)));
         }
 
         function deployRouters(IPoolManager manager)
@@ -195,7 +205,7 @@ spec:
             int24 tickSpacing = 60;
             PoolKey memory poolKey =
                 PoolKey(Currency.wrap(address(token0)), Currency.wrap(address(token1)), 3000, tickSpacing, IHooks(hook));
-            manager.initialize(poolKey, Constants.SQRT_PRICE_1_1);
+            manager.initialize(poolKey, Constants.SQRT_PRICE_1_1, ZERO_BYTES);
 
             // approve the tokens to the routers
             token0.approve(address(lpRouter), type(uint256).max);
@@ -204,9 +214,9 @@ spec:
             token1.approve(address(swapRouter), type(uint256).max);
 
             // add full range liquidity to the pool
-            lpRouter.modifyPosition(
+            lpRouter.modifyLiquidity(
                 poolKey,
-                IPoolManager.ModifyPositionParams(
+                IPoolManager.ModifyLiquidityParams(
                     TickMath.minUsableTick(tickSpacing), TickMath.maxUsableTick(tickSpacing), 100 ether, 0
                 ),
                 ZERO_BYTES
