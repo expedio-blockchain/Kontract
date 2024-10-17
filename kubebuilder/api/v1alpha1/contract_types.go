@@ -67,6 +67,14 @@ type ContractSpec struct {
 	// Script is the source code of the deployment script
 	// Optional
 	Script string `json:"script,omitempty"`
+
+	// FoundryConfig is the content of the foundry.toml file
+	// Optional
+	FoundryConfig string `json:"foundryConfig,omitempty"`
+
+	// FoundryConfigRef references a ConfigMap that contains the foundry.toml file
+	// Optional
+	FoundryConfigRef *ConfigMapReference `json:"foundryConfigRef,omitempty"`
 }
 
 // ContractStatus defines the observed state of Contract

@@ -55,73 +55,73 @@ func (r *ContractVersionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 
 	// Fetch the ContractVersion instance
 	contractVersion := &kontractdeployerv1alpha1.ContractVersion{}
-	err := r.Get(ctx, req.NamespacedName, contractVersion)
-	if err != nil {
+	if err := r.Get(ctx, req.NamespacedName, contractVersion); err != nil {
 		if errors.IsNotFound(err) {
-			// ContractVersion not found, ignore it
+			// ContractVersion not found, ignore
 			return ctrl.Result{}, nil
 		}
-		// Error reading the object - requeue the request.
+		// Error reading the object
 		return ctrl.Result{}, err
 	}
 
 	// Fetch the Network instance
 	network := &kontractdeployerv1alpha1.Network{}
-	err = r.Get(ctx, types.NamespacedName{Name: contractVersion.Spec.NetworkRef, Namespace: req.Namespace}, network)
-	if err != nil {
+	if err := r.Get(ctx, types.NamespacedName{Name: contractVersion.Spec.NetworkRef, Namespace: req.Namespace}, network); err != nil {
 		logger.Error(err, "Failed to get Network")
 		return ctrl.Result{}, err
 	}
 
 	// Fetch the RPCProvider referenced by the Network
 	rpcProvider := &kontractdeployerv1alpha1.RPCProvider{}
-	err = r.Get(ctx, types.NamespacedName{Name: network.Spec.RPCProviderRef.Name, Namespace: req.Namespace}, rpcProvider)
-	if err != nil {
+	if err := r.Get(ctx, types.NamespacedName{Name: network.Spec.RPCProviderRef.Name, Namespace: req.Namespace}, rpcProvider); err != nil {
 		logger.Error(err, "Failed to get RPCProvider")
 		return ctrl.Result{}, err
 	}
 
 	// Fetch the Secret referenced by the RPCProvider
 	rpcProviderSecret := &corev1.Secret{}
-	err = r.Get(ctx, types.NamespacedName{Name: rpcProvider.Spec.SecretRef.Name, Namespace: req.Namespace}, rpcProviderSecret)
-	if err != nil {
+	if err := r.Get(ctx, types.NamespacedName{Name: rpcProvider.Spec.SecretRef.Name, Namespace: req.Namespace}, rpcProviderSecret); err != nil {
 		logger.Error(err, "Failed to get RPCProvider Secret")
 		return ctrl.Result{}, err
 	}
 
 	// Fetch the Wallet instance
 	wallet := &kontractdeployerv1alpha1.Wallet{}
-	err = r.Get(ctx, types.NamespacedName{Name: contractVersion.Spec.WalletRef, Namespace: req.Namespace}, wallet)
-	if err != nil {
+	if err := r.Get(ctx, types.NamespacedName{Name: contractVersion.Spec.WalletRef, Namespace: req.Namespace}, wallet); err != nil {
 		logger.Error(err, "Failed to get Wallet")
 		return ctrl.Result{}, err
 	}
 
 	// Fetch the Wallet Secret
 	if wallet.Status.SecretRef == "" {
-		logger.Error(fmt.Errorf("wallet secret reference is empty"), "Wallet secret reference is empty", "Wallet.Name", wallet.Name)
-		return ctrl.Result{}, fmt.Errorf("wallet secret reference is empty")
+		err := fmt.Errorf("wallet secret reference is empty")
+		logger.Error(err, "Wallet secret reference is empty", "Wallet.Name", wallet.Name)
+		return ctrl.Result{}, err
 	}
 
 	walletSecret := &corev1.Secret{}
-	err = r.Get(ctx, types.NamespacedName{Name: wallet.Status.SecretRef, Namespace: req.Namespace}, walletSecret)
-	if err != nil {
+	if err := r.Get(ctx, types.NamespacedName{Name: wallet.Status.SecretRef, Namespace: req.Namespace}, walletSecret); err != nil {
 		logger.Error(err, "Failed to get Wallet Secret")
 		return ctrl.Result{}, err
 	}
 
-	// Create a ConfigMap for the contract code, tests, and script
+	// Create a ConfigMap for the contract code, tests, script, and foundry.toml
 	configMapName := fmt.Sprintf("%s-contract", contractVersion.Name)
 	configMapData := map[string]string{
 		"code": contractVersion.Spec.Code,
 	}
 
-	// Only add the test data if it exists
+	// Include foundry.toml if specified directly
+	if contractVersion.Spec.FoundryConfig != "" {
+		configMapData["foundry.toml"] = contractVersion.Spec.FoundryConfig
+	}
+
+	// Include test data if it exists
 	if contractVersion.Spec.Test != "" {
 		configMapData["tests"] = contractVersion.Spec.Test
 	}
 
-	// Only add the script data if it exists
+	// Include script data if it exists
 	if contractVersion.Spec.Script != "" {
 		configMapData["script"] = contractVersion.Spec.Script
 	}
@@ -141,43 +141,16 @@ func (r *ContractVersionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	}
 
 	// Create or update the ConfigMap
-	err = r.createOrUpdateConfigMap(ctx, configMap)
-	if err != nil {
+	if err := r.createOrUpdateConfigMap(ctx, configMap); err != nil {
 		logger.Error(err, "Failed to create or update ConfigMap", "ConfigMap.Name", configMapName)
 		return ctrl.Result{}, err
 	}
 
-	// Define the job that will deploy the contract
+	// Prepare filenames for contract, test, and script
 	contractFileName := fmt.Sprintf("%s.sol", contractVersion.Spec.ContractName)
 	testFileName := fmt.Sprintf("%s.t.sol", contractVersion.Spec.ContractName)
 
-	// Define the job that will deploy the contract
-	volumeMounts := []corev1.VolumeMount{
-		{
-			Name:      "contract-code",
-			MountPath: fmt.Sprintf("/home/foundryuser/expedio-kontract-deployer/src/%s", contractFileName),
-			SubPath:   "code",
-		},
-	}
-
-	// Only add the test volume if the test data exists
-	if contractVersion.Spec.Test != "" {
-		volumeMounts = append(volumeMounts, corev1.VolumeMount{
-			Name:      "contract-tests",
-			MountPath: fmt.Sprintf("/home/foundryuser/expedio-kontract-deployer/test/%s", testFileName),
-			SubPath:   "tests",
-		})
-	}
-
-	// Only add the script volume if the script data exists
-	if contractVersion.Spec.Script != "" {
-		volumeMounts = append(volumeMounts, corev1.VolumeMount{
-			Name:      "contract-script",
-			MountPath: "/home/foundryuser/expedio-kontract-deployer/script/script.s.sol",
-			SubPath:   "script",
-		})
-	}
-
+	// Initialize volumes and volumeMounts
 	volumes := []corev1.Volume{
 		{
 			Name: "contract-code",
@@ -189,6 +162,32 @@ func (r *ContractVersionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 				},
 			},
 		},
+	}
+
+	volumeMounts := []corev1.VolumeMount{
+		{
+			Name:      "contract-code",
+			MountPath: fmt.Sprintf("/home/foundryuser/expedio-kontract-deployer/src/%s", contractFileName),
+			SubPath:   "code",
+		},
+	}
+
+	// Mount test data if it exists
+	if contractVersion.Spec.Test != "" {
+		volumeMounts = append(volumeMounts, corev1.VolumeMount{
+			Name:      "contract-code",
+			MountPath: fmt.Sprintf("/home/foundryuser/expedio-kontract-deployer/test/%s", testFileName),
+			SubPath:   "tests",
+		})
+	}
+
+	// Mount script data if it exists
+	if contractVersion.Spec.Script != "" {
+		volumeMounts = append(volumeMounts, corev1.VolumeMount{
+			Name:      "contract-code",
+			MountPath: "/home/foundryuser/expedio-kontract-deployer/script/script.s.sol",
+			SubPath:   "script",
+		})
 	}
 
 	// Add the test volume if the test data exists
@@ -219,26 +218,53 @@ func (r *ContractVersionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		})
 	}
 
+	// Add foundry.toml mounting logic
+	if contractVersion.Spec.FoundryConfigRef != nil {
+		// FoundryConfigRef is specified, fetch the ConfigMap and mount it
+		foundryConfigMapName := contractVersion.Spec.FoundryConfigRef.Name
+		volumes = append(volumes, corev1.Volume{
+			Name: "foundry-config",
+			VolumeSource: corev1.VolumeSource{
+				ConfigMap: &corev1.ConfigMapVolumeSource{
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: foundryConfigMapName,
+					},
+					Items: []corev1.KeyToPath{
+						{
+							Key:  "foundry.toml",
+							Path: "foundry.toml",
+						},
+					},
+				},
+			},
+		})
+		volumeMounts = append(volumeMounts, corev1.VolumeMount{
+			Name:      "foundry-config",
+			MountPath: "/home/foundryuser/expedio-kontract-deployer/foundry.toml",
+			SubPath:   "foundry.toml",
+		})
+	} else if contractVersion.Spec.FoundryConfig != "" {
+		// foundry.toml is included in the main ConfigMap
+		volumeMounts = append(volumeMounts, corev1.VolumeMount{
+			Name:      "contract-code",
+			MountPath: "/home/foundryuser/expedio-kontract-deployer/foundry.toml",
+			SubPath:   "foundry.toml",
+		})
+	}
+
 	// Fetch and mount ConfigMaps for LocalModules
 	localModuleNames := []string{}
 	for _, module := range contractVersion.Spec.LocalModules {
 		configMapName := module.Name
 		localModuleNames = append(localModuleNames, configMapName)
 		configMap := &corev1.ConfigMap{}
-		err = r.Get(ctx, types.NamespacedName{Name: configMapName, Namespace: req.Namespace}, configMap)
+		err := r.Get(ctx, types.NamespacedName{Name: configMapName, Namespace: req.Namespace}, configMap)
 		if err != nil {
 			logger.Error(err, "Failed to get LocalModule ConfigMap", "ConfigMap.Name", configMapName)
 			return ctrl.Result{}, err
 		}
 
-		for key := range configMap.Data {
-			volumeMounts = append(volumeMounts, corev1.VolumeMount{
-				Name:      configMapName,
-				MountPath: fmt.Sprintf("/home/foundryuser/expedio-kontract-deployer/src/%s/%s", configMapName, key),
-				SubPath:   key,
-			})
-		}
-
+		// Add a volume for the module
 		volumes = append(volumes, corev1.Volume{
 			Name: configMapName,
 			VolumeSource: corev1.VolumeSource{
@@ -249,6 +275,15 @@ func (r *ContractVersionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 				},
 			},
 		})
+
+		// Mount all keys in the ConfigMap
+		for key := range configMap.Data {
+			volumeMounts = append(volumeMounts, corev1.VolumeMount{
+				Name:      configMapName,
+				MountPath: fmt.Sprintf("/home/foundryuser/expedio-kontract-deployer/src/%s/%s", configMapName, key),
+				SubPath:   key,
+			})
+		}
 	}
 
 	// Define environment variables for the job
@@ -287,9 +322,13 @@ func (r *ContractVersionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 			Name:  "LOCAL_MODULES",
 			Value: strings.Join(localModuleNames, " "),
 		},
+		{
+			Name:  "CHAIN_ID",
+			Value: fmt.Sprintf("%d", network.Spec.ChainID),
+		},
 	}
 
-	// Conditionally add the RPC_KEY environment variable
+	// Add RPC_KEY if specified
 	if rpcProvider.Spec.SecretRef.TokenKey != "" {
 		envVars = append(envVars, corev1.EnvVar{
 			Name: "RPC_KEY",
@@ -304,18 +343,17 @@ func (r *ContractVersionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		})
 	}
 
-	// Fetch the BlockExplorer referenced by the Network, if it exists
+	// Fetch the BlockExplorer if referenced by the Network
 	var blockExplorer *kontractdeployerv1alpha1.BlockExplorer
 	if network.Spec.BlockExplorerRef != nil {
 		blockExplorer = &kontractdeployerv1alpha1.BlockExplorer{}
-		err = r.Get(ctx, types.NamespacedName{Name: network.Spec.BlockExplorerRef.Name, Namespace: req.Namespace}, blockExplorer)
-		if err != nil {
+		if err := r.Get(ctx, types.NamespacedName{Name: network.Spec.BlockExplorerRef.Name, Namespace: req.Namespace}, blockExplorer); err != nil {
 			logger.Error(err, "Failed to get BlockExplorer")
 			return ctrl.Result{}, err
 		}
 	}
 
-	// Add BlockExplorer details to the job environment variables if it exists
+	// Add BlockExplorer details to the environment variables if it exists
 	if blockExplorer != nil {
 		envVars = append(envVars, corev1.EnvVar{
 			Name: "ETHERSCAN_API_URL",
@@ -340,13 +378,21 @@ func (r *ContractVersionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		})
 	}
 
-	// Add Chain ID to the job environment variables
-	envVars = append(envVars, corev1.EnvVar{
-		Name:  "CHAIN_ID",
-		Value: fmt.Sprintf("%d", network.Spec.ChainID),
-	})
+	// Convert InitParams to JSON if not empty
+	if len(contractVersion.Spec.InitParams) > 0 {
+		initParamsJSON, err := json.Marshal(contractVersion.Spec.InitParams)
+		if err != nil {
+			logger.Error(err, "Failed to marshal InitParams to JSON")
+			return ctrl.Result{}, err
+		}
+		// Add InitParams JSON to the environment variables
+		envVars = append(envVars, corev1.EnvVar{
+			Name:  "INIT_PARAMS",
+			Value: string(initParamsJSON),
+		})
+	}
 
-	// Now, use the envVars when defining the job
+	// Define the Job that will deploy the contract
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("contract-deploy-%s", contractVersion.Name),
@@ -370,46 +416,32 @@ func (r *ContractVersionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		},
 	}
 
-	// Convert InitParams to JSON if not empty
-	if len(contractVersion.Spec.InitParams) > 0 {
-		initParamsJSON, err := json.Marshal(contractVersion.Spec.InitParams)
-		if err != nil {
-			logger.Error(err, "Failed to marshal InitParams to JSON")
-			return ctrl.Result{}, err
-		}
-		// Add InitParams JSON to the job environment variables
-		job.Spec.Template.Spec.Containers[0].Env = append(job.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
-			Name:  "INIT_PARAMS",
-			Value: string(initParamsJSON),
-		})
-	}
-
 	// Set ContractVersion instance as the owner and controller of the Job
 	if err := controllerutil.SetControllerReference(contractVersion, job, r.Scheme); err != nil {
 		logger.Error(err, "Failed to set owner reference for Job", "Job.Name", job.Name)
 		return ctrl.Result{}, err
 	}
 
-	// Check if this Job already exists
-	found := &batchv1.Job{}
-	err = r.Get(ctx, client.ObjectKey{Name: job.Name, Namespace: job.Namespace}, found)
-	if err != nil && errors.IsNotFound(err) {
-		// Job not found, create it
-		logger.Info("Creating a new Job", "Job.Namespace", job.Namespace, "Job.Name", job.Name)
-		err = r.Create(ctx, job)
-		if err != nil {
-			logger.Error(err, "Failed to create Job")
-			return ctrl.Result{}, err
+	// Check if the Job already exists
+	foundJob := &batchv1.Job{}
+	if err := r.Get(ctx, client.ObjectKey{Name: job.Name, Namespace: job.Namespace}, foundJob); err != nil {
+		if errors.IsNotFound(err) {
+			// Job not found, create it
+			logger.Info("Creating a new Job", "Job.Namespace", job.Namespace, "Job.Name", job.Name)
+			if err := r.Create(ctx, job); err != nil {
+				logger.Error(err, "Failed to create Job")
+				return ctrl.Result{}, err
+			}
+			// Job created successfully - requeue
+			return ctrl.Result{Requeue: true}, nil
 		}
-		// Job created successfully - return and requeue
-		return ctrl.Result{Requeue: true}, nil
-	} else if err != nil {
+		// Error getting the Job
 		logger.Error(err, "Failed to get Job")
 		return ctrl.Result{}, err
 	}
 
 	// Job already exists - check its status
-	if found.Status.Succeeded > 0 {
+	if foundJob.Status.Succeeded > 0 {
 		// Job succeeded, update the ContractVersion status
 		if contractVersion.Status.DeploymentTime.IsZero() {
 			contractVersion.Status.DeploymentTime = metav1.Now()
@@ -419,27 +451,32 @@ func (r *ContractVersionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 			logger.Error(err, "Failed to update ContractVersion status")
 			return ctrl.Result{}, err
 		}
-	} else if found.Status.Failed > 0 {
+	} else if foundJob.Status.Failed > 0 {
 		// Job failed, update the ContractVersion status
 		contractVersion.Status.State = "failed"
 		if err := r.Status().Update(ctx, contractVersion); err != nil {
 			logger.Error(err, "Failed to update ContractVersion status")
 			return ctrl.Result{}, err
 		}
+	} else {
+		// Job is still running or pending - requeue
+		return ctrl.Result{RequeueAfter: 10 * time.Second}, nil
 	}
 
-	// Job is still running or pending - requeue
-	return ctrl.Result{RequeueAfter: 10 * time.Second}, nil
+	return ctrl.Result{}, nil
 }
 
 // createOrUpdateConfigMap creates or updates a ConfigMap
 func (r *ContractVersionReconciler) createOrUpdateConfigMap(ctx context.Context, cm *corev1.ConfigMap) error {
+	logger := log.FromContext(ctx)
 	found := &corev1.ConfigMap{}
-	err := r.Get(ctx, client.ObjectKey{Name: cm.Name, Namespace: cm.Namespace}, found)
-	if err != nil && errors.IsNotFound(err) {
-		// ConfigMap not found, create it
-		return r.Create(ctx, cm)
-	} else if err != nil {
+	if err := r.Get(ctx, client.ObjectKey{Name: cm.Name, Namespace: cm.Namespace}, found); err != nil {
+		if errors.IsNotFound(err) {
+			// ConfigMap not found, create it
+			logger.Info("Creating ConfigMap", "ConfigMap.Name", cm.Name)
+			return r.Create(ctx, cm)
+		}
+		// Error getting the ConfigMap
 		return err
 	}
 
@@ -447,7 +484,6 @@ func (r *ContractVersionReconciler) createOrUpdateConfigMap(ctx context.Context,
 	if !reflect.DeepEqual(found.Data, cm.Data) {
 		// ConfigMap found, update it
 		found.Data = cm.Data
-		logger := log.FromContext(ctx)
 		logger.Info("Updating ConfigMap", "ConfigMap.Name", cm.Name)
 		return r.Update(ctx, found)
 	}
@@ -456,7 +492,7 @@ func (r *ContractVersionReconciler) createOrUpdateConfigMap(ctx context.Context,
 	return nil
 }
 
-// SetupWithManager sets up the controller with the Manager.
+// SetupWithManager sets up the controller with the Manager
 func (r *ContractVersionReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&kontractdeployerv1alpha1.ContractVersion{}).
