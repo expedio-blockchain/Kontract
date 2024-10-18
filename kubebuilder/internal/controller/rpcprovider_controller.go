@@ -146,7 +146,6 @@ func (r *RPCProviderReconciler) checkAllRPCProviders(ctx context.Context) {
 
 		// Update the status to healthy: true without creating an event
 		r.updateStatus(ctx, &rpcProvider, true, urlKey)
-		r.Recorder.Event(&rpcProvider, corev1.EventTypeNormal, "APIHealthCheckSucceeded", "API health check succeeded")
 	}
 }
 
