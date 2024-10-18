@@ -390,7 +390,7 @@ func (r *ContractVersionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 					Containers: []corev1.Container{
 						{
 							Name:         "foundry",
-							Image:        "docker.io/expedio/foundry:latest",
+							Image:        "docker.io/expedio/kontract-foundry:latest",
 							Env:          envVars,
 							VolumeMounts: volumeMounts,
 						},
