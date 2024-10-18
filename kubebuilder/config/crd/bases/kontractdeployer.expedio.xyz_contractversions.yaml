@@ -48,21 +48,7 @@ spec:
                   type: string
                 type: array
               foundryConfig:
-                description: |-
-                  FoundryConfig is the content of the foundry.toml file
-                  Optional
                 type: string
-              foundryConfigRef:
-                description: |-
-                  FoundryConfigRef references a ConfigMap that contains the foundry.toml file
-                  Optional
-                properties:
-                  name:
-                    description: Name of the ConfigMap
-                    type: string
-                required:
-                - name
-                type: object
               gasStrategyRef:
                 type: string
               initParams:

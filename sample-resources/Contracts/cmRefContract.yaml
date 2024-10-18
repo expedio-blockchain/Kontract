@@ -1,36 +1,66 @@
 apiVersion: kontractdeployer.expedio.xyz/v1alpha1
 kind: Contract
 metadata:
-  name: foundry-config-contract
+  name: configmap-based-contract
 spec:
-  contractName: FoundryConfigContract
+  contractName: ConfigMapBasedContract
   networkRefs:
-   - holesky
+    - holesky
   walletRef: dev-wallet
   gasStrategyRef: high-priority-gas
+  codeRef:
+    name: contract-code-configmap
+    key: code
+  testRef:
+    name: contract-test-configmap
+    key: test
+  foundryConfigRef:
+    name: foundry-config-configmap
+    key: foundry.toml
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: contract-code-configmap
+data:
   code: |
     // SPDX-License-Identifier: MIT
     pragma solidity ^0.8.9;
-    contract FoundryConfigContract {
+    contract ConfigMapBasedContract {
       uint128 public value;
       function setValue(uint128 newValue) public {
         value = newValue;
       }
     }
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: contract-test-configmap
+data:
   test: |
     // SPDX-License-Identifier: MIT
     pragma solidity ^0.8.9;
-    import "src/FoundryConfigContract.sol";
-    contract FoundryConfigContractTest {
-      FoundryConfigContract myContract;
+    import "src/ConfigMapBasedContract.sol";
+    contract ConfigMapBasedContractTest {
+      ConfigMapBasedContract myContract;
       function setUp() public {
-        myContract = new FoundryConfigContract();
+        myContract = new ConfigMapBasedContract();
       }
       function testInitialValue() public {
         myContract.setValue(1);
       }
     }
-  foundryConfig: |
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: foundry-config-configmap
+data:
+  foundry.toml: |
     [rpc_endpoints]
     mainnet = "https://eth.llamarpc.com"
     [profile.default]
