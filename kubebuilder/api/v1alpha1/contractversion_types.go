@@ -28,7 +28,6 @@ type ContractVersionSpec struct {
 	ContractName    string               `json:"contractName"`
 	NetworkRef      string               `json:"networkRef"`
 	WalletRef       string               `json:"walletRef"`
-	GasStrategyRef  string               `json:"gasStrategyRef"`
 	Code            string               `json:"code"`
 	Test            string               `json:"test,omitempty"`
 	InitParams      []string             `json:"initParams,omitempty"`

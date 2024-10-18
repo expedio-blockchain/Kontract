@@ -9,7 +9,6 @@ spec:
   contractName: MySmartContract
   networkRef: ethereum-mainnet
   walletRef: my-wallet
-  gasStrategyRef: high-priority-gas
   code: |
     // SPDX-License-Identifier: MIT
     pragma solidity ^0.8.0;

@@ -7,7 +7,6 @@ spec:
   networkRefs:
     - anvil
   walletRef: anvil-wallet
-  gasStrategyRef: high-priority-gas
   externalModules:
     - "uniswap/v4-core"
     - "uniswap/v4-periphery"
