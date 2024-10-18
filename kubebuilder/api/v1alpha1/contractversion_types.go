@@ -35,12 +35,7 @@ type ContractVersionSpec struct {
 	ExternalModules []string             `json:"externalModules,omitempty"`
 	LocalModules    []ConfigMapReference `json:"localModules,omitempty"`
 	Script          string               `json:"script,omitempty"`
-	// FoundryConfig is the content of the foundry.toml file
-	// Optional
-	FoundryConfig string `json:"foundryConfig,omitempty"`
-	// FoundryConfigRef references a ConfigMap that contains the foundry.toml file
-	// Optional
-	FoundryConfigRef *ConfigMapReference `json:"foundryConfigRef,omitempty"`
+	FoundryConfig   string               `json:"foundryConfig,omitempty"`
 }
 
 // ContractVersionStatus defines the observed state of ContractVersion

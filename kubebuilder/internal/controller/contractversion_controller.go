@@ -226,31 +226,7 @@ func (r *ContractVersionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	}
 
 	// Add foundry.toml mounting logic
-	if contractVersion.Spec.FoundryConfigRef != nil {
-		// FoundryConfigRef is specified, fetch the ConfigMap and mount it
-		foundryConfigMapName := contractVersion.Spec.FoundryConfigRef.Name
-		volumes = append(volumes, corev1.Volume{
-			Name: "foundry-config",
-			VolumeSource: corev1.VolumeSource{
-				ConfigMap: &corev1.ConfigMapVolumeSource{
-					LocalObjectReference: corev1.LocalObjectReference{
-						Name: foundryConfigMapName,
-					},
-					Items: []corev1.KeyToPath{
-						{
-							Key:  "foundry.toml",
-							Path: "foundry.toml",
-						},
-					},
-				},
-			},
-		})
-		volumeMounts = append(volumeMounts, corev1.VolumeMount{
-			Name:      "foundry-config",
-			MountPath: "/home/foundryuser/expedio-kontract-deployer/foundry.toml",
-			SubPath:   "foundry.toml",
-		})
-	} else if contractVersion.Spec.FoundryConfig != "" {
+	if contractVersion.Spec.FoundryConfig != "" {
 		// foundry.toml is included in the main ConfigMap
 		volumeMounts = append(volumeMounts, corev1.VolumeMount{
 			Name:      "contract-code",
