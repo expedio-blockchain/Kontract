@@ -30,7 +30,16 @@ spec:
         myContract.setValue(1);
       }
     }
-  foundryConfig : |
+  foundryConfigRef:
+    name: custom-foundry-config
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: custom-foundry-config
+data:
+  foundry.toml: |
     [rpc_endpoints]
     mainnet = "https://eth.llamarpc.com"
     [profile.default]
