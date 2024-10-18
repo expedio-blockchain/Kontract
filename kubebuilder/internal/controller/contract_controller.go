@@ -76,22 +76,29 @@ func (r *ContractReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		}
 	}
 
-	test := contract.Spec.Test
-	if test == "" && contract.Spec.TestRef != nil {
-		var err error
-		test, err = r.getConfigMapData(ctx, req.Namespace, contract.Spec.TestRef)
-		if err != nil {
-			logger.Error(err, "Failed to get Test from ConfigMap and no Test provided")
-			return ctrl.Result{}, err
-		}
-	}
-
 	script := contract.Spec.Script
 	if script == "" && contract.Spec.ScriptRef != nil {
 		var err error
 		script, err = r.getConfigMapData(ctx, req.Namespace, contract.Spec.ScriptRef)
 		if err != nil {
 			logger.Error(err, "Failed to get Script from ConfigMap and no Script provided")
+			return ctrl.Result{}, err
+		}
+	}
+
+	// Check if both code and script are missing
+	if code == "" && script == "" {
+		logger.Info("Both code and script are missing, skipping ContractVersion creation")
+		r.EventRecorder.Event(contract, "Warning", "MissingCodeAndScript", "Both code and script are missing, skipping ContractVersion creation")
+		return ctrl.Result{}, nil
+	}
+
+	test := contract.Spec.Test
+	if test == "" && contract.Spec.TestRef != nil {
+		var err error
+		test, err = r.getConfigMapData(ctx, req.Namespace, contract.Spec.TestRef)
+		if err != nil {
+			logger.Error(err, "Failed to get Test from ConfigMap and no Test provided")
 			return ctrl.Result{}, err
 		}
 	}
