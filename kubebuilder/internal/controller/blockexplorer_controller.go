@@ -57,8 +57,11 @@ func (r *BlockExplorerReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	var blockExplorer kontractdeployerv1alpha1.BlockExplorer
 	if err := r.Get(ctx, req.NamespacedName, &blockExplorer); err != nil {
 		log.Error(err, "unable to fetch BlockExplorer")
+		r.Recorder.Event(&blockExplorer, corev1.EventTypeWarning, "FetchFailed", "Unable to fetch BlockExplorer")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
+
+	log.Info("Successfully fetched BlockExplorer", "BlockExplorer.Name", blockExplorer.Name)
 
 	// Perform reconciliation logic if needed
 	// (You can leave this part empty or perform some reconciliation logic if required)
@@ -103,6 +106,7 @@ func (r *BlockExplorerReconciler) checkAllBlockExplorers(ctx context.Context) {
 		if err := r.Get(ctx, secretName, &secret); err != nil {
 			log.Error(err, fmt.Sprintf("BlockExplorer (%s) - unable to fetch Secret", blockExplorer.Name), "Secret", secretName)
 			r.updateStatus(ctx, &blockExplorer, false, "")
+			r.Recorder.Event(&blockExplorer, corev1.EventTypeWarning, "SecretFetchFailed", "Unable to fetch Secret for BlockExplorer")
 			continue
 		}
 
@@ -182,6 +186,9 @@ func (r *BlockExplorerReconciler) updateStatus(ctx context.Context, blockExplore
 	blockExplorer.Status.APIEndpoint = apiEndpoint
 	if err := r.Status().Update(ctx, blockExplorer); err != nil {
 		log.FromContext(ctx).Error(err, fmt.Sprintf("BlockExplorer (%s) - unable to update BlockExplorer status", blockExplorer.Name))
+		r.Recorder.Event(blockExplorer, corev1.EventTypeWarning, "StatusUpdateFailed", "Failed to update BlockExplorer status")
+	} else {
+		log.FromContext(ctx).Info("BlockExplorer status updated successfully", "BlockExplorer.Name", blockExplorer.Name)
 	}
 }
 

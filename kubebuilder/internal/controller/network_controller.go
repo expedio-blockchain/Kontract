@@ -69,8 +69,11 @@ func (r *NetworkReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	var network kontractdeployerv1alpha1.Network
 	if err := r.Get(ctx, req.NamespacedName, &network); err != nil {
 		logger.Error(err, "unable to fetch Network")
+		r.EventRecorder.Event(&network, corev1.EventTypeWarning, "FetchFailed", "Unable to fetch Network")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
+
+	logger.Info("Successfully fetched Network", "Network.Name", network.Name)
 
 	// Check if the Network instance is marked for deletion
 	if network.ObjectMeta.DeletionTimestamp.IsZero() {
@@ -142,7 +145,10 @@ func (r *NetworkReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	// Update the Network status
 	if err := r.Status().Update(ctx, &network); err != nil {
 		logger.Error(err, "unable to update Network status")
+		r.EventRecorder.Event(&network, corev1.EventTypeWarning, "StatusUpdateFailed", "Failed to update Network status")
 		return ctrl.Result{}, err
+	} else {
+		logger.Info("Network status updated successfully", "Network.Name", network.Name)
 	}
 
 	return ctrl.Result{}, nil
