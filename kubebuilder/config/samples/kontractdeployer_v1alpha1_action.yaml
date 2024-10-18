@@ -12,7 +12,6 @@ spec:
   contractRef: my-smart-contract # Reference to the Contract resource (for 'invoke', 'query', and 'test')
   walletRef: my-wallet # Reference to the Wallet resource
   networkRef: ethereum-mainnet # Reference to the Network resource
-  gasStrategyRef: high-priority-gas # Reference to the GasStrategy resource
 
   # Fields for 'invoke' and 'test' actions
   functionName: setParameter # Name of the contract function to execute (if actionType is 'invoke' or 'test')

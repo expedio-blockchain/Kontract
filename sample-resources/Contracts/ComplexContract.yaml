@@ -10,7 +10,6 @@ spec:
     - amoy
     - sepolia
   walletRef: dev-wallet
-  gasStrategyRef: high-priority-gas
   initParams:
     - "https://expedio.xyz/metadata"
     - "0x1234567890abcdef1234567890abcdef12345678"

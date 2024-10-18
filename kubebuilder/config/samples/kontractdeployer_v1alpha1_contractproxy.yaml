@@ -9,7 +9,6 @@ spec:
   proxyType: Transparent
   networkRef: ethereum-mainnet
   walletRef: my-wallet
-  gasStrategyRef: high-priority-gas
   implementationRef: my-implementation-contract-v1
   proxyAdminRef: my-proxy-admin
 status:

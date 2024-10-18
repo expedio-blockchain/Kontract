@@ -8,7 +8,6 @@ metadata:
 spec:
   networkRef: ethereum-mainnet
   walletRef: my-wallet
-  gasStrategyRef: high-priority-gas
   adminAddress: 0x...
 status:
   contractProxyRefs:
