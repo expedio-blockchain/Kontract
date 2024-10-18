@@ -33,7 +33,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	kontractdeployerv1alpha1 "github.com/expedio-blockchain/KontractDeployer/api/v1alpha1"
+	kontractdeployerv1alpha1 "github.com/expedio-blockchain/Kontract/api/v1alpha1"
 	// +kubebuilder:scaffold:imports
 )
 

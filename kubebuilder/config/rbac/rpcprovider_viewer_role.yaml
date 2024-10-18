@@ -8,7 +8,7 @@ metadata:
   name: rpcprovider-viewer-role
 rules:
 - apiGroups:
-  - kontractdeployer.expedio.xyz
+  - kontract.expedio.xyz
   resources:
   - rpcproviders
   verbs:
@@ -16,7 +16,7 @@ rules:
   - list
   - watch
 - apiGroups:
-  - kontractdeployer.expedio.xyz
+  - kontract.expedio.xyz
   resources:
   - rpcproviders/status
   verbs:

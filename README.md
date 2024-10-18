@@ -1,4 +1,4 @@
-# KontractDeployer
+# Kontract
 
 Kubernetes operator for smart contracts deployment
 
@@ -101,16 +101,16 @@ classDef mainBox fill:#e0f7fa,stroke:#006064,stroke-width:3px,font-size:24px,col
     end
 
     %% Adding links to resources
-    click RPCProvider "https://github.com/expedio-blockchain/KontractDeployer#rpcprovider" "Go to RPCProvider section"
-    click BlockExplorer "https://github.com/expedio-blockchain/KontractDeployer#blockexplorer" "Go to BlockExplorer section"
-    click Network "https://github.com/expedio-blockchain/KontractDeployer#network" "Go to Network section"
-    click Wallet "https://github.com/expedio-blockchain/KontractDeployer#wallet" "Go to Wallet section"
-    click Contract "https://github.com/expedio-blockchain/KontractDeployer#contract" "Go to Contract section"
-    click ContractProxy "https://github.com/expedio-blockchain/KontractDeployer#contractproxy" "Go to ContractProxy section"
-    click ProxyAdmin "https://github.com/expedio-blockchain/KontractDeployer#proxyadmin" "Go to ProxyAdmin section"
-    click Action "https://github.com/expedio-blockchain/KontractDeployer#action" "Go to Action section"
-    click EventHook "https://github.com/expedio-blockchain/KontractDeployer#eventhook" "Go to EventHook section"
-    click GasStrategy "https://github.com/expedio-blockchain/KontractDeployer#gasstrategy" "Go to GasStrategy section"
+    click RPCProvider "https://github.com/expedio-blockchain/Kontract#rpcprovider" "Go to RPCProvider section"
+    click BlockExplorer "https://github.com/expedio-blockchain/Kontract#blockexplorer" "Go to BlockExplorer section"
+    click Network "https://github.com/expedio-blockchain/Kontract#network" "Go to Network section"
+    click Wallet "https://github.com/expedio-blockchain/Kontract#wallet" "Go to Wallet section"
+    click Contract "https://github.com/expedio-blockchain/Kontract#contract" "Go to Contract section"
+    click ContractProxy "https://github.com/expedio-blockchain/Kontract#contractproxy" "Go to ContractProxy section"
+    click ProxyAdmin "https://github.com/expedio-blockchain/Kontract#proxyadmin" "Go to ProxyAdmin section"
+    click Action "https://github.com/expedio-blockchain/Kontract#action" "Go to Action section"
+    click EventHook "https://github.com/expedio-blockchain/Kontract#eventhook" "Go to EventHook section"
+    click GasStrategy "https://github.com/expedio-blockchain/Kontract#gasstrategy" "Go to GasStrategy section"
 
 ```
 
@@ -123,7 +123,7 @@ classDef mainBox fill:#e0f7fa,stroke:#006064,stroke-width:3px,font-size:24px,col
 **Interaction**: Network resources reference RPCProvider to interact with blockchain networks. The operator uses the secretRef to retrieve the API token and append it to the RPC requests.
 
 ```yaml
-apiVersion: kontractdeployer.expedio.xyz/v1alpha1
+apiVersion: kontract.expedio.xyz/v1alpha1
 kind: RPCProvider
 metadata:
   name: rpcprovider-sample
@@ -144,7 +144,7 @@ spec:
 **Interactions**: The BlockExplorer resource acts as a centralized service for retrieving blockchain data. It is directly referenced by the Network resource, which in turn is referenced by other resources like Contract, Action, and EventHook.
 
 ```yaml
-apiVersion: kontractdeployer.expedio.xyz/v1alpha1
+apiVersion: kontract.expedio.xyz/v1alpha1
 kind: BlockExplorer
 metadata:
   name: blockexplorer-sample
@@ -167,14 +167,14 @@ Ensures secure communication and interaction with the blockchain.
 **Interaction**: Referenced by Contract and Wallet resources to determine the network on which they operate.
 
 ```yaml
-apiVersion: kontractdeployer.expedio.xyz/v1alpha1
+apiVersion: kontract.expedio.xyz/v1alpha1
 kind: Network
 metadata:
   name: network-sample
 spec:
   networkName: holeskyTestnet
   chainID: 17000
-  rpcProviderRef: 
+  rpcProviderRef:
     name: rpcprovider-sample
   blockExplorerRef:
     name: blockexplorer-sample
@@ -191,7 +191,7 @@ Can support multiple wallet types, including externally managed wallets.
 **Interaction**: Referenced by Contract for deploying and interacting with contracts on the blockchain.
 
 ```yaml
-apiVersion: kontractdeployer.expedio.xyz/v1alpha1
+apiVersion: kontract.expedio.xyz/v1alpha1
 kind: Wallet
 metadata:
   labels:
@@ -217,7 +217,7 @@ status:
 **Interaction**: Depends on Network and Wallet resources to determine where and how the contract is deployed. The ContractProxy resource references the Contract resource when a new implementation is deployed.
 
 ```yaml
-apiVersion: kontractdeployer.expedio.xyz/v1alpha1
+apiVersion: kontract.expedio.xyz/v1alpha1
 kind: Contract
 metadata:
   name: contract-sample

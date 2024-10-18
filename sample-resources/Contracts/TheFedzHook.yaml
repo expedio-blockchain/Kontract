@@ -1,5 +1,5 @@
 ---
-apiVersion: kontractdeployer.expedio.xyz/v1alpha1
+apiVersion: kontract.expedio.xyz/v1alpha1
 kind: Contract
 metadata:
   name: the-fedz-hook

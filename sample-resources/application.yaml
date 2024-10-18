@@ -10,6 +10,6 @@ spec:
     server: https://kubernetes.default.svc
   source:
     path: sample-resources
-    repoURL: https://github.com/expedio-blockchain/KontractDeployer.git
+    repoURL: https://github.com/expedio-blockchain/Kontract.git
     targetRevision: demo
   project: default

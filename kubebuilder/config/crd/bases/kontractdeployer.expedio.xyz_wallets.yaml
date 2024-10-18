@@ -4,9 +4,9 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.16.1
-  name: wallets.kontractdeployer.expedio.xyz
+  name: wallets.kontract.expedio.xyz
 spec:
-  group: kontractdeployer.expedio.xyz
+  group: kontract.expedio.xyz
   names:
     kind: Wallet
     listKind: WalletList

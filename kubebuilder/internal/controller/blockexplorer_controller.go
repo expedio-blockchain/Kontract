@@ -32,7 +32,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	kontractdeployerv1alpha1 "github.com/expedio-blockchain/KontractDeployer/api/v1alpha1"
+	kontractdeployerv1alpha1 "github.com/expedio-blockchain/Kontract/api/v1alpha1"
 )
 
 // BlockExplorerReconciler reconciles a BlockExplorer object
@@ -42,9 +42,9 @@ type BlockExplorerReconciler struct {
 	Recorder record.EventRecorder // Event recorder for logging events
 }
 
-// +kubebuilder:rbac:groups=kontractdeployer.expedio.xyz,resources=blockexplorers,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=kontractdeployer.expedio.xyz,resources=blockexplorers/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=kontractdeployer.expedio.xyz,resources=blockexplorers/finalizers,verbs=update
+// +kubebuilder:rbac:groups=kontract.expedio.xyz,resources=blockexplorers,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=kontract.expedio.xyz,resources=blockexplorers/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=kontract.expedio.xyz,resources=blockexplorers/finalizers,verbs=update
 // +kubebuilder:rbac:groups="",resources=secrets,verbs=create;update;get;list;watch
 // +kubebuilder:rbac:groups="",resources=events,verbs=create;patch;update
 

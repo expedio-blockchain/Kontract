@@ -8,7 +8,7 @@ metadata:
   name: network-viewer-role
 rules:
 - apiGroups:
-  - kontractdeployer.expedio.xyz
+  - kontract.expedio.xyz
   resources:
   - networks
   verbs:
@@ -16,7 +16,7 @@ rules:
   - list
   - watch
 - apiGroups:
-  - kontractdeployer.expedio.xyz
+  - kontract.expedio.xyz
   resources:
   - networks/status
   verbs:
