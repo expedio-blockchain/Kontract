@@ -5,7 +5,7 @@ metadata:
 spec:
   contractName: ScriptContract
   networkRefs:
-    - holesky
+    - amoy
   walletRef: dev-wallet
   gasStrategyRef: high-priority-gas
   code: |
