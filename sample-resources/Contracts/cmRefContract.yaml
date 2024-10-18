@@ -7,7 +7,6 @@ spec:
   networkRefs:
     - holesky
   walletRef: dev-wallet
-  gasStrategyRef: high-priority-gas
   codeRef:
     name: contract-code-configmap
     key: code

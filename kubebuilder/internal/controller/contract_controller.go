@@ -127,7 +127,6 @@ func (r *ContractReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 				ContractName:    contract.Spec.ContractName,
 				NetworkRef:      networkRef,
 				WalletRef:       contract.Spec.WalletRef,
-				GasStrategyRef:  contract.Spec.GasStrategyRef,
 				Code:            code,
 				Test:            test,
 				InitParams:      contract.Spec.InitParams,

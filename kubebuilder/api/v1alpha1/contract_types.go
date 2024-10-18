@@ -53,9 +53,6 @@ type ContractSpec struct {
 	// WalletRef references the Wallet resource that will sign transactions
 	WalletRef string `json:"walletRef"`
 
-	// GasStrategyRef references the GasStrategy resource for gas price management
-	GasStrategyRef string `json:"gasStrategyRef"`
-
 	// ExternalModules is a list of external modules to be imported via npm
 	ExternalModules []string `json:"externalModules,omitempty"`
 

@@ -74,8 +74,6 @@ func (r *ContractVersionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		return ctrl.Result{}, err
 	}
 
-	logger.Info("Successfully fetched ContractVersion", "ContractVersion.Name", contractVersion.Name)
-
 	// Fetch the Network instance
 	network := &kontractdeployerv1alpha1.Network{}
 	if err := r.Get(ctx, types.NamespacedName{Name: contractVersion.Spec.NetworkRef, Namespace: req.Namespace}, network); err != nil {
@@ -485,8 +483,6 @@ func (r *ContractVersionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		if err := r.Status().Update(ctx, contractVersion); err != nil {
 			logger.Error(err, "Failed to update ContractVersion status")
 			return ctrl.Result{}, err
-		} else {
-			r.EventRecorder.Event(contractVersion, corev1.EventTypeNormal, "DeploymentSucceeded", "ContractVersion deployed successfully")
 		}
 	} else if foundJob.Status.Failed > 0 {
 		// Job failed, update the ContractVersion status

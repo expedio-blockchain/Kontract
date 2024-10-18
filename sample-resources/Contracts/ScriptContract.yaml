@@ -7,7 +7,6 @@ spec:
   networkRefs:
     - amoy
   walletRef: dev-wallet
-  gasStrategyRef: high-priority-gas
   code: |
     // SPDX-License-Identifier: MIT
     pragma solidity ^0.8.0;

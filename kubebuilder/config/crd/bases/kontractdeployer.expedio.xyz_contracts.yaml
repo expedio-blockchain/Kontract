@@ -86,10 +86,6 @@ spec:
                 - key
                 - name
                 type: object
-              gasStrategyRef:
-                description: GasStrategyRef references the GasStrategy resource for
-                  gas price management
-                type: string
               import:
                 default: false
                 description: Import indicates whether the contract should be imported
@@ -169,7 +165,6 @@ spec:
                 type: string
             required:
             - contractName
-            - gasStrategyRef
             - networkRefs
             - walletRef
             type: object
