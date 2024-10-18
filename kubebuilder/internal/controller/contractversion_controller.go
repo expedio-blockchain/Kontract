@@ -560,6 +560,9 @@ func (r *ContractVersionReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	}
 	r.Clientset = clientset
 
+	// Initialize EventRecorder
+	r.EventRecorder = mgr.GetEventRecorderFor("contractversion-controller")
+
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&kontractdeployerv1alpha1.ContractVersion{}).
 		Owns(&batchv1.Job{}).
