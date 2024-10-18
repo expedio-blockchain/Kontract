@@ -1,0 +1,137 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "kontract.fullname" . }}-manager-role
+  labels:
+  {{- include "kontract.labels" . | nindent 4 }}
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+  - update
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - secrets
+  - services
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - pods/log
+  verbs:
+  - get
+- apiGroups:
+  - ""
+  resources:
+  - pods/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - batch
+  resources:
+  - jobs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - kontract.expedio.xyz
+  resources:
+  - actions
+  - blockexplorers
+  - contractproxies
+  - contracts
+  - contractversions
+  - eventhooks
+  - gasstrategies
+  - networks
+  - proxyadmins
+  - rpcproviders
+  - wallets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - kontract.expedio.xyz
+  resources:
+  - actions/finalizers
+  - blockexplorers/finalizers
+  - contractproxies/finalizers
+  - contracts/finalizers
+  - contractversions/finalizers
+  - eventhooks/finalizers
+  - gasstrategies/finalizers
+  - networks/finalizers
+  - proxyadmins/finalizers
+  - rpcproviders/finalizers
+  - wallets/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - kontract.expedio.xyz
+  resources:
+  - actions/status
+  - blockexplorers/status
+  - contractproxies/status
+  - contracts/status
+  - contractversions/status
+  - eventhooks/status
+  - gasstrategies/status
+  - networks/status
+  - proxyadmins/status
+  - rpcproviders/status
+  - wallets/status
+  verbs:
+  - get
+  - patch
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "kontract.fullname" . }}-manager-rolebinding
+  labels:
+  {{- include "kontract.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: '{{ include "kontract.fullname" . }}-manager-role'
+subjects:
+- kind: ServiceAccount
+  name: '{{ include "kontract.fullname" . }}-controller-manager'
+  namespace: '{{ .Release.Namespace }}'

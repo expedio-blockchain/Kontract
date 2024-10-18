@@ -1,0 +1,21 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "kontract.fullname" . }}-blockexplorer-viewer-role
+  labels:
+  {{- include "kontract.labels" . | nindent 4 }}
+rules:
+- apiGroups:
+  - kontract.expedio.xyz
+  resources:
+  - blockexplorers
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - kontract.expedio.xyz
+  resources:
+  - blockexplorers/status
+  verbs:
+  - get
