@@ -1,6 +1,0 @@
-apiVersion: v2
-name: kontract
-description: A Helm chart for Kubernetes to deploy Kontract Operator. Kontract is a kubernetes smart contract deployer.
-type: application
-version: 0.1.10
-appVersion: "0.1.10"
