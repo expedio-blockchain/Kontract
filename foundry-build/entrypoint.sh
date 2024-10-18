@@ -64,7 +64,6 @@ if [ -f "$SCRIPT_FILE" ]; then
 
     # Extract the deployed contract address and transaction hash from the output
     CONTRACT_ADDRESS=$(grep -oP 'Contract deployed at: \K(0x[a-fA-F0-9]{40})' "$DEPLOY_OUTPUT_FILE")
-    TRANSACTION_HASH=$(grep -oP 'Transaction hash: \K(0x[a-fA-F0-9]{64})' "$DEPLOY_OUTPUT_FILE")
 else
     # Check for test files and run tests if any exist
     if ls test/*.sol 1> /dev/null 2>&1; then
