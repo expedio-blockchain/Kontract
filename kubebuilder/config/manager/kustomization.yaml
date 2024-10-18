@@ -5,4 +5,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: docker.io/expedio/kontract-deployer
-  newTag: code-as-configmap-1
+  newTag: code-as-configmap-3
