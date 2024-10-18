@@ -4,9 +4,9 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.16.1
-  name: contracts.kontractdeployer.expedio.xyz
+  name: contracts.kontract.expedio.xyz
 spec:
-  group: kontractdeployer.expedio.xyz
+  group: kontract.expedio.xyz
   names:
     kind: Contract
     listKind: ContractList

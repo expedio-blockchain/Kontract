@@ -35,8 +35,8 @@ import (
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
-	kontractdeployerv1alpha1 "github.com/expedio-blockchain/KontractDeployer/api/v1alpha1"
-	"github.com/expedio-blockchain/KontractDeployer/internal/controller"
+	kontractdeployerv1alpha1 "github.com/expedio-blockchain/Kontract/api/v1alpha1"
+	"github.com/expedio-blockchain/Kontract/internal/controller"
 	// +kubebuilder:scaffold:imports
 )
 

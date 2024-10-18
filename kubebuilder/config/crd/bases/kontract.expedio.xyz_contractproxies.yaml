@@ -4,20 +4,20 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.16.1
-  name: wallets.kontractdeployer.expedio.xyz
+  name: contractproxies.kontract.expedio.xyz
 spec:
-  group: kontractdeployer.expedio.xyz
+  group: kontract.expedio.xyz
   names:
-    kind: Wallet
-    listKind: WalletList
-    plural: wallets
-    singular: wallet
+    kind: ContractProxy
+    listKind: ContractProxyList
+    plural: contractproxies
+    singular: contractproxy
   scope: Namespaced
   versions:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: Wallet is the Schema for the wallets API
+        description: ContractProxy is the Schema for the contractproxies API
         properties:
           apiVersion:
             description: |-
@@ -37,41 +37,45 @@ spec:
           metadata:
             type: object
           spec:
-            description: WalletSpec defines the desired state of Wallet
+            description: ContractProxySpec defines the desired state of ContractProxy
             properties:
-              importFrom:
-                description: ImportFrom specifies the details for importing an existing
-                  wallet
-                properties:
-                  secretRef:
-                    description: SecretRef references a Kubernetes Secret that contains
-                      the wallet's private key or mnemonic
-                    type: string
-                type: object
+              gasStrategyRef:
+                description: GasStrategyRef references the GasStrategy resource for
+                  gas price management
+                type: string
+              implementationRef:
+                description: ImplementationRef references the implementation contract
+                type: string
               networkRef:
                 description: NetworkRef references the Network resource where this
-                  wallet is used
+                  proxy is deployed
                 type: string
-              walletType:
-                description: WalletType specifies the type of wallet (e.g., EOA, Contract)
+              proxyAdminRef:
+                description: ProxyAdminRef references the ProxyAdmin resource managing
+                  this proxy
+                type: string
+              proxyType:
+                description: ProxyType defines the type of proxy (e.g., Transparent)
+                type: string
+              walletRef:
+                description: WalletRef references the Wallet resource that will sign
+                  transactions
                 type: string
             required:
+            - gasStrategyRef
+            - implementationRef
             - networkRef
-            - walletType
+            - proxyAdminRef
+            - proxyType
+            - walletRef
             type: object
           status:
-            description: WalletStatus defines the observed state of Wallet
+            description: ContractProxyStatus defines the observed state of ContractProxy
             properties:
-              publicKey:
-                description: PublicKey stores the public key associated with the wallet
+              proxyAddress:
+                description: ProxyAddress is the address of the proxy contract on
+                  the blockchain
                 type: string
-              secretRef:
-                description: SecretRef stores the reference to the Kubernetes Secret
-                  that contains the wallet's private key or mnemonic
-                type: string
-            required:
-            - publicKey
-            - secretRef
             type: object
         type: object
     served: true

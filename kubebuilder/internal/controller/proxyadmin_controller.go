@@ -24,7 +24,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	kontractdeployerv1alpha1 "github.com/expedio-blockchain/KontractDeployer/api/v1alpha1"
+	kontractdeployerv1alpha1 "github.com/expedio-blockchain/Kontract/api/v1alpha1"
 )
 
 // ProxyAdminReconciler reconciles a ProxyAdmin object
@@ -33,9 +33,9 @@ type ProxyAdminReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-// +kubebuilder:rbac:groups=kontractdeployer.expedio.xyz,resources=proxyadmins,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=kontractdeployer.expedio.xyz,resources=proxyadmins/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=kontractdeployer.expedio.xyz,resources=proxyadmins/finalizers,verbs=update
+// +kubebuilder:rbac:groups=kontract.expedio.xyz,resources=proxyadmins,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=kontract.expedio.xyz,resources=proxyadmins/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=kontract.expedio.xyz,resources=proxyadmins/finalizers,verbs=update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.

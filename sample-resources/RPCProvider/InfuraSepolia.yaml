@@ -1,5 +1,5 @@
 ---
-apiVersion: kontractdeployer.expedio.xyz/v1alpha1
+apiVersion: kontract.expedio.xyz/v1alpha1
 kind: RPCProvider
 metadata:
   name: infura-sepolia
