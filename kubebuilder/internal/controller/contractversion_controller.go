@@ -34,6 +34,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -45,8 +46,9 @@ import (
 // ContractVersionReconciler reconciles a ContractVersion object
 type ContractVersionReconciler struct {
 	client.Client
-	Clientset *kubernetes.Clientset
-	Scheme    *runtime.Scheme
+	Clientset     *kubernetes.Clientset
+	Scheme        *runtime.Scheme
+	EventRecorder record.EventRecorder
 }
 
 // +kubebuilder:rbac:groups=kontractdeployer.expedio.xyz,resources=contractversions,verbs=get;list;watch;create;update;patch;delete
@@ -68,8 +70,11 @@ func (r *ContractVersionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 			return ctrl.Result{}, nil
 		}
 		// Error reading the object
+		logger.Error(err, "Failed to get ContractVersion")
 		return ctrl.Result{}, err
 	}
+
+	logger.Info("Successfully fetched ContractVersion", "ContractVersion.Name", contractVersion.Name)
 
 	// Fetch the Network instance
 	network := &kontractdeployerv1alpha1.Network{}
@@ -413,9 +418,11 @@ func (r *ContractVersionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 			logger.Info("Creating a new Job", "Job.Namespace", job.Namespace, "Job.Name", job.Name)
 			if err := r.Create(ctx, job); err != nil {
 				logger.Error(err, "Failed to create Job")
+				r.EventRecorder.Event(contractVersion, corev1.EventTypeWarning, "JobCreationFailed", "Failed to create Job for ContractVersion")
 				return ctrl.Result{}, err
 			}
 			// Job created successfully - requeue
+			r.EventRecorder.Event(contractVersion, corev1.EventTypeNormal, "JobCreated", "Job created successfully for ContractVersion")
 			return ctrl.Result{Requeue: true}, nil
 		}
 		// Error getting the Job
@@ -478,9 +485,12 @@ func (r *ContractVersionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		if err := r.Status().Update(ctx, contractVersion); err != nil {
 			logger.Error(err, "Failed to update ContractVersion status")
 			return ctrl.Result{}, err
+		} else {
+			r.EventRecorder.Event(contractVersion, corev1.EventTypeNormal, "DeploymentSucceeded", "ContractVersion deployed successfully")
 		}
 	} else if foundJob.Status.Failed > 0 {
 		// Job failed, update the ContractVersion status
+		r.EventRecorder.Event(contractVersion, corev1.EventTypeWarning, "DeploymentFailed", "ContractVersion deployment failed")
 		contractVersion.Status.State = "failed"
 		if err := r.Status().Update(ctx, contractVersion); err != nil {
 			logger.Error(err, "Failed to update ContractVersion status")
@@ -549,6 +559,9 @@ func (r *ContractVersionReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		return err
 	}
 	r.Clientset = clientset
+
+	// Initialize EventRecorder
+	r.EventRecorder = mgr.GetEventRecorderFor("contractversion-controller")
 
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&kontractdeployerv1alpha1.ContractVersion{}).
