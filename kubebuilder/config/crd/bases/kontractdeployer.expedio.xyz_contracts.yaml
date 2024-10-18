@@ -40,8 +40,24 @@ spec:
             description: ContractSpec defines the desired state of Contract
             properties:
               code:
-                description: Code is the source code of the smart contract
+                description: |-
+                  Code is the source code of the smart contract
+                  Can be a direct string or a reference to a ConfigMap key
                 type: string
+              codeRef:
+                description: ConfigMapKeyReference defines a reference to a ConfigMap
+                  and a specific key within it
+                properties:
+                  key:
+                    description: Key within the ConfigMap
+                    type: string
+                  name:
+                    description: Name of the ConfigMap
+                    type: string
+                required:
+                - key
+                - name
+                type: object
               contractName:
                 description: ContractName is the name of the smart contract
                 type: string
@@ -54,17 +70,20 @@ spec:
               foundryConfig:
                 description: |-
                   FoundryConfig is the content of the foundry.toml file
-                  Optional
+                  Optional, can be a direct string or a reference to a ConfigMap key
                 type: string
               foundryConfigRef:
-                description: |-
-                  FoundryConfigRef references a ConfigMap that contains the foundry.toml file
-                  Optional
+                description: ConfigMapKeyReference defines a reference to a ConfigMap
+                  and a specific key within it
                 properties:
+                  key:
+                    description: Key within the ConfigMap
+                    type: string
                   name:
                     description: Name of the ConfigMap
                     type: string
                 required:
+                - key
                 - name
                 type: object
               gasStrategyRef:
@@ -109,19 +128,46 @@ spec:
               script:
                 description: |-
                   Script is the source code of the deployment script
-                  Optional
+                  Optional, can be a direct string or a reference to a ConfigMap key
                 type: string
+              scriptRef:
+                description: ConfigMapKeyReference defines a reference to a ConfigMap
+                  and a specific key within it
+                properties:
+                  key:
+                    description: Key within the ConfigMap
+                    type: string
+                  name:
+                    description: Name of the ConfigMap
+                    type: string
+                required:
+                - key
+                - name
+                type: object
               test:
                 description: |-
                   Test is the source code for testing the smart contract
-                  Optional
+                  Optional, can be a direct string or a reference to a ConfigMap key
                 type: string
+              testRef:
+                description: ConfigMapKeyReference defines a reference to a ConfigMap
+                  and a specific key within it
+                properties:
+                  key:
+                    description: Key within the ConfigMap
+                    type: string
+                  name:
+                    description: Name of the ConfigMap
+                    type: string
+                required:
+                - key
+                - name
+                type: object
               walletRef:
                 description: WalletRef references the Wallet resource that will sign
                   transactions
                 type: string
             required:
-            - code
             - contractName
             - gasStrategyRef
             - networkRefs
