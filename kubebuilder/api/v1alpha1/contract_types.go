@@ -26,6 +26,14 @@ type ConfigMapReference struct {
 	Name string `json:"name"`
 }
 
+// ConfigMapKeyReference defines a reference to a ConfigMap and a specific key within it
+type ConfigMapKeyReference struct {
+	// Name of the ConfigMap
+	Name string `json:"name"`
+	// Key within the ConfigMap
+	Key string `json:"key"`
+}
+
 // ContractSpec defines the desired state of Contract
 type ContractSpec struct {
 	// Import indicates whether the contract should be imported (true) or deployed (false)
@@ -55,26 +63,27 @@ type ContractSpec struct {
 	LocalModules []ConfigMapReference `json:"localModules,omitempty"`
 
 	// Code is the source code of the smart contract
-	Code string `json:"code"`
+	// Can be a direct string or a reference to a ConfigMap key
+	Code    string                 `json:"code,omitempty"`
+	CodeRef *ConfigMapKeyReference `json:"codeRef,omitempty"`
 
 	// Test is the source code for testing the smart contract
-	// Optional
-	Test string `json:"test,omitempty"`
+	// Optional, can be a direct string or a reference to a ConfigMap key
+	Test    string                 `json:"test,omitempty"`
+	TestRef *ConfigMapKeyReference `json:"testRef,omitempty"`
 
 	// InitParams is a list of initialization parameters for the contract
 	InitParams []string `json:"initParams,omitempty"`
 
 	// Script is the source code of the deployment script
-	// Optional
-	Script string `json:"script,omitempty"`
+	// Optional, can be a direct string or a reference to a ConfigMap key
+	Script    string                 `json:"script,omitempty"`
+	ScriptRef *ConfigMapKeyReference `json:"scriptRef,omitempty"`
 
 	// FoundryConfig is the content of the foundry.toml file
-	// Optional
-	FoundryConfig string `json:"foundryConfig,omitempty"`
-
-	// FoundryConfigRef references a ConfigMap that contains the foundry.toml file
-	// Optional
-	FoundryConfigRef *ConfigMapReference `json:"foundryConfigRef,omitempty"`
+	// Optional, can be a direct string or a reference to a ConfigMap key
+	FoundryConfig    string                 `json:"foundryConfig,omitempty"`
+	FoundryConfigRef *ConfigMapKeyReference `json:"foundryConfigRef,omitempty"`
 }
 
 // ContractStatus defines the observed state of Contract

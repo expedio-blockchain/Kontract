@@ -21,9 +21,11 @@ import (
 	"fmt"
 
 	"github.com/go-logr/logr"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -45,20 +47,43 @@ type ContractReconciler struct {
 // +kubebuilder:rbac:groups=batch,resources=jobs,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;create;update;delete
 
-// Reconcile is part of the main kubernetes reconciliation loop which aims to
-// move the current state of the cluster closer to the desired state.
 func (r *ContractReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
 
 	// Fetch the Contract instance
 	contract := &kontractdeployerv1alpha1.Contract{}
-	err := r.Get(ctx, req.NamespacedName, contract)
-	if err != nil {
+	if err := r.Get(ctx, req.NamespacedName, contract); err != nil {
 		if errors.IsNotFound(err) {
 			// Contract not found, ignore it
 			return ctrl.Result{}, nil
 		}
 		// Error reading the object - requeue the request.
+		logger.Error(err, "Failed to get Contract")
+		return ctrl.Result{}, err
+	}
+
+	// Extract Code, Test, Script, and FoundryConfig from ConfigMaps if references are provided
+	code, err := r.getConfigMapData(ctx, req.Namespace, contract.Spec.CodeRef)
+	if err != nil {
+		logger.Error(err, "Failed to get Code from ConfigMap")
+		return ctrl.Result{}, err
+	}
+
+	test, err := r.getConfigMapData(ctx, req.Namespace, contract.Spec.TestRef)
+	if err != nil {
+		logger.Error(err, "Failed to get Test from ConfigMap")
+		return ctrl.Result{}, err
+	}
+
+	script, err := r.getConfigMapData(ctx, req.Namespace, contract.Spec.ScriptRef)
+	if err != nil {
+		logger.Error(err, "Failed to get Script from ConfigMap")
+		return ctrl.Result{}, err
+	}
+
+	foundryConfig, err := r.getConfigMapData(ctx, req.Namespace, contract.Spec.FoundryConfigRef)
+	if err != nil {
+		logger.Error(err, "Failed to get FoundryConfig from ConfigMap")
 		return ctrl.Result{}, err
 	}
 
@@ -70,33 +95,30 @@ func (r *ContractReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 				Namespace: req.Namespace,
 			},
 			Spec: kontractdeployerv1alpha1.ContractVersionSpec{
-				ContractName:     contract.Spec.ContractName,
-				NetworkRef:       networkRef,
-				WalletRef:        contract.Spec.WalletRef,
-				GasStrategyRef:   contract.Spec.GasStrategyRef,
-				Code:             contract.Spec.Code,
-				Test:             contract.Spec.Test,
-				InitParams:       contract.Spec.InitParams,
-				ExternalModules:  contract.Spec.ExternalModules,
-				LocalModules:     contract.Spec.LocalModules,
-				Script:           contract.Spec.Script,
-				FoundryConfig:    contract.Spec.FoundryConfig,
-				FoundryConfigRef: contract.Spec.FoundryConfigRef,
+				ContractName:    contract.Spec.ContractName,
+				NetworkRef:      networkRef,
+				WalletRef:       contract.Spec.WalletRef,
+				GasStrategyRef:  contract.Spec.GasStrategyRef,
+				Code:            code,
+				Test:            test,
+				InitParams:      contract.Spec.InitParams,
+				ExternalModules: contract.Spec.ExternalModules,
+				LocalModules:    contract.Spec.LocalModules,
+				Script:          script,
+				FoundryConfig:   foundryConfig,
 			},
 		}
 
 		// Set Contract instance as the owner and controller of the ContractVersion
 		if err := controllerutil.SetControllerReference(contract, contractVersion, r.Scheme); err != nil {
-			r.Recorder.Error(err, "Failed to set owner reference for ContractVersion", "ContractVersion.Name", contractVersion.Name)
+			logger.Error(err, "Failed to set owner reference for ContractVersion", "ContractVersion.Name", contractVersion.Name)
 			return ctrl.Result{}, err
 		}
 
 		// Create the ContractVersion
-		err = r.Create(ctx, contractVersion)
-		if err != nil {
+		if err := r.Create(ctx, contractVersion); err != nil {
 			if !errors.IsAlreadyExists(err) {
-				logger.Error(err, "Failed to create ContractVersion")
-				r.Recorder.Error(err, "Failed to create ContractVersion", "ContractVersion.Name", contractVersion.Name)
+				logger.Error(err, "Failed to create ContractVersion", "ContractVersion.Name", contractVersion.Name)
 				return ctrl.Result{}, err
 			}
 		}
@@ -104,13 +126,31 @@ func (r *ContractReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	// Update the Contract status with the current version
 	contract.Status.CurrentVersion = fmt.Sprintf("%s-version-%d", contract.Name, contract.Generation)
-	err = r.Status().Update(ctx, contract)
-	if err != nil {
+	if err := r.Status().Update(ctx, contract); err != nil {
 		logger.Error(err, "Failed to update Contract status")
 		return ctrl.Result{}, err
 	}
 
 	return ctrl.Result{}, nil
+}
+
+// getConfigMapData fetches the data from a ConfigMap based on the provided reference
+func (r *ContractReconciler) getConfigMapData(ctx context.Context, namespace string, ref *kontractdeployerv1alpha1.ConfigMapKeyReference) (string, error) {
+	if ref == nil {
+		return "", nil
+	}
+
+	configMap := &corev1.ConfigMap{}
+	if err := r.Get(ctx, types.NamespacedName{Name: ref.Name, Namespace: namespace}, configMap); err != nil {
+		return "", err
+	}
+
+	data, exists := configMap.Data[ref.Key]
+	if !exists {
+		return "", fmt.Errorf("key %s not found in ConfigMap %s", ref.Key, ref.Name)
+	}
+
+	return data, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
