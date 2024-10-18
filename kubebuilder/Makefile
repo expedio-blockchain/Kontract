@@ -198,3 +198,15 @@ mv $(1) $(1)-$(3) ;\
 } ;\
 ln -sf $(1)-$(3) $(1)
 endef
+
+# Create helm chart using helmify
+
+HELMIFY ?= $(LOCALBIN)/helmify
+# Variable to specify the Helm chart name
+CHART_NAME ?= kontract
+.PHONY: helmify
+helmify: $(HELMIFY) ## Download helmify locally if necessary.
+$(HELMIFY): $(LOCALBIN)
+	test -s $(LOCALBIN)/helmify || GOBIN=$(LOCALBIN) go install github.com/arttor/helmify/cmd/helmify@latest
+helm: manifests kustomize helmify
+	$(KUSTOMIZE) build config/default | $(HELMIFY) $(CHART_NAME)
