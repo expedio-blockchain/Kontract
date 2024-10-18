@@ -61,8 +61,11 @@ func (r *ContractReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		}
 		// Error reading the object - requeue the request.
 		logger.Error(err, "Failed to get Contract")
+		r.EventRecorder.Event(contract, corev1.EventTypeWarning, "FetchFailed", "Failed to fetch Contract")
 		return ctrl.Result{}, err
 	}
+
+	logger.Info("Successfully fetched Contract", "Contract.Name", contract.Name)
 
 	// Extract Code, Test, Script, and FoundryConfig
 	code := contract.Spec.Code
@@ -145,8 +148,11 @@ func (r *ContractReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		if err := r.Create(ctx, contractVersion); err != nil {
 			if !errors.IsAlreadyExists(err) {
 				logger.Error(err, "Failed to create ContractVersion", "ContractVersion.Name", contractVersion.Name)
+				r.EventRecorder.Event(contract, corev1.EventTypeWarning, "ContractVersionCreationFailed", "Failed to create ContractVersion")
 				return ctrl.Result{}, err
 			}
+		} else {
+			r.EventRecorder.Event(contract, corev1.EventTypeNormal, "ContractVersionCreated", fmt.Sprintf("ContractVersion %s created successfully", contractVersion.Name))
 		}
 	}
 
@@ -154,7 +160,10 @@ func (r *ContractReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	contract.Status.CurrentVersion = fmt.Sprintf("%s-version-%d", contract.Name, contract.Generation)
 	if err := r.Status().Update(ctx, contract); err != nil {
 		logger.Error(err, "Failed to update Contract status")
+		r.EventRecorder.Event(contract, corev1.EventTypeWarning, "StatusUpdateFailed", "Failed to update Contract status")
 		return ctrl.Result{}, err
+	} else {
+		logger.Info("Contract status updated successfully", "Contract.Name", contract.Name)
 	}
 
 	return ctrl.Result{}, nil
