@@ -26,6 +26,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -37,8 +38,9 @@ import (
 // ContractReconciler reconciles a Contract object
 type ContractReconciler struct {
 	client.Client
-	Scheme   *runtime.Scheme
-	Recorder *logr.Logger
+	Scheme        *runtime.Scheme
+	EventRecorder record.EventRecorder
+	Recorder      *logr.Logger
 }
 
 // +kubebuilder:rbac:groups=kontractdeployer.expedio.xyz,resources=contracts,verbs=get;list;watch;create;update;patch;delete
@@ -62,29 +64,46 @@ func (r *ContractReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, err
 	}
 
-	// Extract Code, Test, Script, and FoundryConfig from ConfigMaps if references are provided
-	code, err := r.getConfigMapData(ctx, req.Namespace, contract.Spec.CodeRef)
-	if err != nil {
-		logger.Error(err, "Failed to get Code from ConfigMap")
-		return ctrl.Result{}, err
+	// Extract Code, Test, Script, and FoundryConfig
+	code := contract.Spec.Code
+	if code == "" && contract.Spec.CodeRef != nil {
+		var err error
+		code, err = r.getConfigMapData(ctx, req.Namespace, contract.Spec.CodeRef)
+		if err != nil {
+			logger.Error(err, "Failed to get Code from ConfigMap and no Code provided")
+			r.EventRecorder.Event(contract, "Warning", "MissingCode", "No code is provided for the contract")
+			return ctrl.Result{}, err
+		}
 	}
 
-	test, err := r.getConfigMapData(ctx, req.Namespace, contract.Spec.TestRef)
-	if err != nil {
-		logger.Error(err, "Failed to get Test from ConfigMap")
-		return ctrl.Result{}, err
+	test := contract.Spec.Test
+	if test == "" && contract.Spec.TestRef != nil {
+		var err error
+		test, err = r.getConfigMapData(ctx, req.Namespace, contract.Spec.TestRef)
+		if err != nil {
+			logger.Error(err, "Failed to get Test from ConfigMap and no Test provided")
+			return ctrl.Result{}, err
+		}
 	}
 
-	script, err := r.getConfigMapData(ctx, req.Namespace, contract.Spec.ScriptRef)
-	if err != nil {
-		logger.Error(err, "Failed to get Script from ConfigMap")
-		return ctrl.Result{}, err
+	script := contract.Spec.Script
+	if script == "" && contract.Spec.ScriptRef != nil {
+		var err error
+		script, err = r.getConfigMapData(ctx, req.Namespace, contract.Spec.ScriptRef)
+		if err != nil {
+			logger.Error(err, "Failed to get Script from ConfigMap and no Script provided")
+			return ctrl.Result{}, err
+		}
 	}
 
-	foundryConfig, err := r.getConfigMapData(ctx, req.Namespace, contract.Spec.FoundryConfigRef)
-	if err != nil {
-		logger.Error(err, "Failed to get FoundryConfig from ConfigMap")
-		return ctrl.Result{}, err
+	foundryConfig := contract.Spec.FoundryConfig
+	if foundryConfig == "" && contract.Spec.FoundryConfigRef != nil {
+		var err error
+		foundryConfig, err = r.getConfigMapData(ctx, req.Namespace, contract.Spec.FoundryConfigRef)
+		if err != nil {
+			logger.Error(err, "Failed to get FoundryConfig from ConfigMap and no FoundryConfig provided")
+			return ctrl.Result{}, err
+		}
 	}
 
 	// Iterate over each network reference and create a ContractVersion
@@ -155,6 +174,7 @@ func (r *ContractReconciler) getConfigMapData(ctx context.Context, namespace str
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *ContractReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	r.EventRecorder = mgr.GetEventRecorderFor("contract-controller")
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&kontractdeployerv1alpha1.Contract{}).
 		Complete(r)
