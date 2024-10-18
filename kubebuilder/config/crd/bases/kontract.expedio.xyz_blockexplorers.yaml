@@ -4,20 +4,20 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.16.1
-  name: rpcproviders.kontractdeployer.expedio.xyz
+  name: blockexplorers.kontract.expedio.xyz
 spec:
-  group: kontractdeployer.expedio.xyz
+  group: kontract.expedio.xyz
   names:
-    kind: RPCProvider
-    listKind: RPCProviderList
-    plural: rpcproviders
-    singular: rpcprovider
+    kind: BlockExplorer
+    listKind: BlockExplorerList
+    plural: blockexplorers
+    singular: blockexplorer
   scope: Namespaced
   versions:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: RPCProvider is the Schema for the rpcproviders API
+        description: BlockExplorer is the Schema for the blockexplorers API
         properties:
           apiVersion:
             description: |-
@@ -37,46 +37,38 @@ spec:
           metadata:
             type: object
           spec:
-            description: RPCProviderSpec defines the desired state of RPCProvider
+            description: BlockExplorerSpec defines the desired state of BlockExplorer
             properties:
-              providerName:
-                description: ProviderName is the name of the RPC provider (e.g., Infura)
+              explorerName:
+                description: ExplorerName is the name of the block explorer (e.g.,
+                  Etherscan)
                 type: string
               secretRef:
-                description: SecretRef references a Kubernetes Secret that contains
-                  the API token and endpoint URL
+                description: SecretRef references a Kubernetes Secret and specifies
+                  the keys for API token and URL
                 properties:
                   name:
-                    description: Name of the secret in the same namespace
                     type: string
                   tokenKey:
-                    description: TokenKey is the key within the secret that contains
-                      the API token
                     type: string
                   urlKey:
-                    description: URLKey is the key within the secret that contains
-                      the API endpoint URL
                     type: string
                 required:
                 - name
+                - tokenKey
                 - urlKey
                 type: object
             required:
-            - providerName
+            - explorerName
             - secretRef
             type: object
           status:
-            description: RPCProviderStatus defines the observed state of RPCProvider
+            description: BlockExplorerStatus defines the observed state of BlockExplorer
             properties:
               apiEndpoint:
-                description: APIEndpoint is the actual API endpoint used for RPC calls
                 type: string
               healthy:
-                description: Healthy indicates whether the RPCProvider is healthy
                 type: boolean
-            required:
-            - apiEndpoint
-            - healthy
             type: object
         type: object
     served: true

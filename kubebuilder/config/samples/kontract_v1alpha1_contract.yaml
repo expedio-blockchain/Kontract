@@ -1,13 +1,16 @@
-apiVersion: kontractdeployer.expedio.xyz/v1alpha1
-kind: ContractVersion
+apiVersion: kontract.expedio.xyz/v1alpha1
+kind: Contract
 metadata:
   labels:
     app.kubernetes.io/name: kubebuilder
     app.kubernetes.io/managed-by: kustomize
-  name: contractversion-sample
+  name: contract-sample
 spec:
+  import: false
+  importContractAddress: 0x... # only if import is true
   contractName: MySmartContract
-  networkRef: ethereum-mainnet
+  networkRefs:
+    - ethereum-mainnet
   walletRef: my-wallet
   code: |
     // SPDX-License-Identifier: MIT

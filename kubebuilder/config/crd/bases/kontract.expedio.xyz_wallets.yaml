@@ -4,20 +4,20 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.16.1
-  name: blockexplorers.kontractdeployer.expedio.xyz
+  name: wallets.kontract.expedio.xyz
 spec:
-  group: kontractdeployer.expedio.xyz
+  group: kontract.expedio.xyz
   names:
-    kind: BlockExplorer
-    listKind: BlockExplorerList
-    plural: blockexplorers
-    singular: blockexplorer
+    kind: Wallet
+    listKind: WalletList
+    plural: wallets
+    singular: wallet
   scope: Namespaced
   versions:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: BlockExplorer is the Schema for the blockexplorers API
+        description: Wallet is the Schema for the wallets API
         properties:
           apiVersion:
             description: |-
@@ -37,38 +37,41 @@ spec:
           metadata:
             type: object
           spec:
-            description: BlockExplorerSpec defines the desired state of BlockExplorer
+            description: WalletSpec defines the desired state of Wallet
             properties:
-              explorerName:
-                description: ExplorerName is the name of the block explorer (e.g.,
-                  Etherscan)
-                type: string
-              secretRef:
-                description: SecretRef references a Kubernetes Secret and specifies
-                  the keys for API token and URL
+              importFrom:
+                description: ImportFrom specifies the details for importing an existing
+                  wallet
                 properties:
-                  name:
+                  secretRef:
+                    description: SecretRef references a Kubernetes Secret that contains
+                      the wallet's private key or mnemonic
                     type: string
-                  tokenKey:
-                    type: string
-                  urlKey:
-                    type: string
-                required:
-                - name
-                - tokenKey
-                - urlKey
                 type: object
+              networkRef:
+                description: NetworkRef references the Network resource where this
+                  wallet is used
+                type: string
+              walletType:
+                description: WalletType specifies the type of wallet (e.g., EOA, Contract)
+                type: string
             required:
-            - explorerName
-            - secretRef
+            - networkRef
+            - walletType
             type: object
           status:
-            description: BlockExplorerStatus defines the observed state of BlockExplorer
+            description: WalletStatus defines the observed state of Wallet
             properties:
-              apiEndpoint:
+              publicKey:
+                description: PublicKey stores the public key associated with the wallet
                 type: string
-              healthy:
-                type: boolean
+              secretRef:
+                description: SecretRef stores the reference to the Kubernetes Secret
+                  that contains the wallet's private key or mnemonic
+                type: string
+            required:
+            - publicKey
+            - secretRef
             type: object
         type: object
     served: true

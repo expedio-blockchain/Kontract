@@ -64,7 +64,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - kontractdeployer.expedio.xyz
+  - kontract.expedio.xyz
   resources:
   - actions
   - blockexplorers
@@ -86,7 +86,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - kontractdeployer.expedio.xyz
+  - kontract.expedio.xyz
   resources:
   - actions/finalizers
   - blockexplorers/finalizers
@@ -102,7 +102,7 @@ rules:
   verbs:
   - update
 - apiGroups:
-  - kontractdeployer.expedio.xyz
+  - kontract.expedio.xyz
   resources:
   - actions/status
   - blockexplorers/status

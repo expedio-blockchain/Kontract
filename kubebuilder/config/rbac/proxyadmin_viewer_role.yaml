@@ -8,7 +8,7 @@ metadata:
   name: proxyadmin-viewer-role
 rules:
 - apiGroups:
-  - kontractdeployer.expedio.xyz
+  - kontract.expedio.xyz
   resources:
   - proxyadmins
   verbs:
@@ -16,7 +16,7 @@ rules:
   - list
   - watch
 - apiGroups:
-  - kontractdeployer.expedio.xyz
+  - kontract.expedio.xyz
   resources:
   - proxyadmins/status
   verbs:

@@ -24,7 +24,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/expedio-blockchain/KontractDeployer/test/utils"
+	"github.com/expedio-blockchain/Kontract/test/utils"
 )
 
 const namespace = "kubebuilder-system"

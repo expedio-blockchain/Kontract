@@ -32,7 +32,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	kontractdeployerv1alpha1 "github.com/expedio-blockchain/KontractDeployer/api/v1alpha1"
+	kontractdeployerv1alpha1 "github.com/expedio-blockchain/Kontract/api/v1alpha1"
 )
 
 // ContractReconciler reconciles a Contract object
@@ -43,9 +43,9 @@ type ContractReconciler struct {
 	Recorder      *logr.Logger
 }
 
-// +kubebuilder:rbac:groups=kontractdeployer.expedio.xyz,resources=contracts,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=kontractdeployer.expedio.xyz,resources=contracts/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=kontractdeployer.expedio.xyz,resources=contracts/finalizers,verbs=update
+// +kubebuilder:rbac:groups=kontract.expedio.xyz,resources=contracts,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=kontract.expedio.xyz,resources=contracts/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=kontract.expedio.xyz,resources=contracts/finalizers,verbs=update
 // +kubebuilder:rbac:groups=batch,resources=jobs,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;create;update;delete
 

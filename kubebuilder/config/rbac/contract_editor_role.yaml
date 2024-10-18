@@ -8,7 +8,7 @@ metadata:
   name: contract-editor-role
 rules:
 - apiGroups:
-  - kontractdeployer.expedio.xyz
+  - kontract.expedio.xyz
   resources:
   - contracts
   verbs:
@@ -20,7 +20,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - kontractdeployer.expedio.xyz
+  - kontract.expedio.xyz
   resources:
   - contracts/status
   verbs:

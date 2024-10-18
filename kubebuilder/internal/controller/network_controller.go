@@ -26,7 +26,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	kontractdeployerv1alpha1 "github.com/expedio-blockchain/KontractDeployer/api/v1alpha1"
+	kontractdeployerv1alpha1 "github.com/expedio-blockchain/Kontract/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -38,9 +38,9 @@ type NetworkReconciler struct {
 	EventRecorder record.EventRecorder
 }
 
-// +kubebuilder:rbac:groups=kontractdeployer.expedio.xyz,resources=networks,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=kontractdeployer.expedio.xyz,resources=networks/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=kontractdeployer.expedio.xyz,resources=networks/finalizers,verbs=update
+// +kubebuilder:rbac:groups=kontract.expedio.xyz,resources=networks,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=kontract.expedio.xyz,resources=networks/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=kontract.expedio.xyz,resources=networks/finalizers,verbs=update
 
 // Grant permissions to create Pods
 // +kubebuilder:rbac:groups="",resources=pods,verbs=get;list;watch;create;update;patch;delete
@@ -53,12 +53,12 @@ type NetworkReconciler struct {
 // +kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch;create;update;patch;delete
 
 // Grant permissions to manage Wallets
-// +kubebuilder:rbac:groups=kontractdeployer.expedio.xyz,resources=wallets,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=kontract.expedio.xyz,resources=wallets,verbs=get;list;watch;create;update;patch;delete
 
 // Grant permissions to manage RPCProviders
-// +kubebuilder:rbac:groups=kontractdeployer.expedio.xyz,resources=rpcproviders,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=kontract.expedio.xyz,resources=rpcproviders,verbs=get;list;watch;create;update;patch;delete
 
-const networkFinalizer = "kontractdeployer.expedio.xyz/network-finalizer"
+const networkFinalizer = "kontract.expedio.xyz/network-finalizer"
 
 // Reconcile is part of the main Kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -178,7 +178,7 @@ func (r *NetworkReconciler) createAnvilResources(ctx context.Context, network *k
 				Containers: []corev1.Container{
 					{
 						Name:    "anvil",
-						Image:   "docker.io/expedio/foundry:latest",
+						Image:   "docker.io/expedio/kontract-foundry:latest",
 						Command: []string{"anvil", "--chain-id", fmt.Sprintf("%d", network.Spec.ChainID), "--host", "0.0.0.0"},
 						Ports: []corev1.ContainerPort{
 							{
