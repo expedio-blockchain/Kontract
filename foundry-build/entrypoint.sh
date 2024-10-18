@@ -41,7 +41,7 @@ SCRIPT_FILE="script/script.s.sol"
 log "Deploying the contract $CONTRACT_NAME..."
 print_separator
 
-# Check if RPC_URL ends with a "/" and add remove
+# Check if RPC_URL ends with a "/" and remove it
 if [[ "${RPC_URL}" == */ ]]; then
     RPC_URL="${RPC_URL%/}"
 fi
@@ -61,6 +61,10 @@ if [ -f "$SCRIPT_FILE" ]; then
     log "forge script $SCRIPT_FILE --rpc-url $FULL_RPC_URL --private-key ************ --broadcast"
     forge script "$SCRIPT_FILE" --rpc-url "$FULL_RPC_URL" --private-key "$WALLET_PRV_KEY" --broadcast | tee "$DEPLOY_OUTPUT_FILE"
     echo "Script completed."
+
+    # Extract the deployed contract address and transaction hash from the output
+    CONTRACT_ADDRESS=$(grep -oP 'Contract deployed at: \K(0x[a-fA-F0-9]{40})' "$DEPLOY_OUTPUT_FILE")
+    TRANSACTION_HASH=$(grep -oP 'Transaction hash: \K(0x[a-fA-F0-9]{64})' "$DEPLOY_OUTPUT_FILE")
 else
     # Check for test files and run tests if any exist
     if ls test/*.sol 1> /dev/null 2>&1; then
@@ -85,10 +89,13 @@ else
         forge create "$CONTRACT_FILE:$CONTRACT_NAME" --rpc-url "$FULL_RPC_URL" --private-key "$WALLET_PRV_KEY" | tee "$DEPLOY_OUTPUT_FILE"
     fi
 
-    # Extract the deployed contract address from the output
+    # Extract the deployed contract address and transaction hash from the output
     CONTRACT_ADDRESS=$(grep -oP 'Deployed to: \K(0x[a-fA-F0-9]{40})' "$DEPLOY_OUTPUT_FILE")
-
-    print_separator
-    log "Deployment completed. Contract Address: $CONTRACT_ADDRESS"
-    print_separator
+    TRANSACTION_HASH=$(grep -oP 'Transaction hash: \K(0x[a-fA-F0-9]{64})' "$DEPLOY_OUTPUT_FILE")
 fi
+
+print_separator
+log "Deployment completed."
+log "Contract Address: $CONTRACT_ADDRESS"
+log "Transaction Hash: $TRANSACTION_HASH"
+print_separator
