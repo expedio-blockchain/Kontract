@@ -17,10 +17,13 @@ limitations under the License.
 package controller
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"reflect"
+	"regexp"
 	"strings"
 	"time"
 
@@ -30,6 +33,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/kubernetes"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -41,7 +45,8 @@ import (
 // ContractVersionReconciler reconciles a ContractVersion object
 type ContractVersionReconciler struct {
 	client.Client
-	Scheme *runtime.Scheme
+	Clientset *kubernetes.Clientset
+	Scheme    *runtime.Scheme
 }
 
 // +kubebuilder:rbac:groups=kontractdeployer.expedio.xyz,resources=contractversions,verbs=get;list;watch;create;update;patch;delete
@@ -49,6 +54,8 @@ type ContractVersionReconciler struct {
 // +kubebuilder:rbac:groups=kontractdeployer.expedio.xyz,resources=contractversions/finalizers,verbs=update
 // +kubebuilder:rbac:groups=batch,resources=jobs,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;create;update;delete
+// +kubebuilder:rbac:groups="",resources=pods,verbs=get;list;watch
+// +kubebuilder:rbac:groups="",resources=pods/log,verbs=get
 
 func (r *ContractVersionReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
@@ -446,7 +453,52 @@ func (r *ContractVersionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		if contractVersion.Status.DeploymentTime.IsZero() {
 			contractVersion.Status.DeploymentTime = metav1.Now()
 		}
+
+		// Get the Pods of the Job
+		podList := &corev1.PodList{}
+		listOpts := []client.ListOption{
+			client.InNamespace(req.Namespace),
+			client.MatchingLabels(foundJob.Spec.Selector.MatchLabels),
+		}
+		if err := r.List(ctx, podList, listOpts...); err != nil {
+			logger.Error(err, "Failed to list Pods for Job", "Job.Name", foundJob.Name)
+			return ctrl.Result{}, err
+		}
+
+		// Assuming there's only one Pod created by the Job
+		if len(podList.Items) == 0 {
+			logger.Error(nil, "No Pods found for Job", "Job.Name", foundJob.Name)
+			return ctrl.Result{}, fmt.Errorf("no Pods found for Job %s", foundJob.Name)
+		}
+
+		pod := &podList.Items[0]
+
+		// Get the logs of the Pod
+		podLogOpts := corev1.PodLogOptions{}
+		podLogsRequest := r.Clientset.CoreV1().Pods(pod.Namespace).GetLogs(pod.Name, &podLogOpts)
+		podLogsStream, err := podLogsRequest.Stream(ctx)
+		if err != nil {
+			logger.Error(err, "Failed to get Pod logs", "Pod.Name", pod.Name)
+			return ctrl.Result{}, err
+		}
+		defer podLogsStream.Close()
+
+		var podLogsBuf bytes.Buffer
+		if _, err := io.Copy(&podLogsBuf, podLogsStream); err != nil {
+			logger.Error(err, "Failed to copy Pod logs", "Pod.Name", pod.Name)
+			return ctrl.Result{}, err
+		}
+		podLogs := podLogsBuf.String()
+
+		// Extract contract address and transaction hash from logs
+		contractAddress := extractContractAddressFromLogs(podLogs)
+		transactionHash := extractTransactionHashFromLogs(podLogs)
+
+		// Update the ContractVersion status
+		contractVersion.Status.ContractAddress = contractAddress
+		contractVersion.Status.TransactionHash = transactionHash
 		contractVersion.Status.State = "deployed"
+
 		if err := r.Status().Update(ctx, contractVersion); err != nil {
 			logger.Error(err, "Failed to update ContractVersion status")
 			return ctrl.Result{}, err
@@ -464,6 +516,26 @@ func (r *ContractVersionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	}
 
 	return ctrl.Result{}, nil
+}
+
+// Helper function to extract the contract address from logs
+func extractContractAddressFromLogs(logs string) string {
+	re := regexp.MustCompile(`Contract Address: (0x[a-fA-F0-9]{40})`)
+	matches := re.FindStringSubmatch(logs)
+	if len(matches) > 1 {
+		return matches[1]
+	}
+	return ""
+}
+
+// Helper function to extract the transaction hash from logs
+func extractTransactionHashFromLogs(logs string) string {
+	re := regexp.MustCompile(`Transaction Hash: (0x[a-fA-F0-9]{64})`)
+	matches := re.FindStringSubmatch(logs)
+	if len(matches) > 1 {
+		return matches[1]
+	}
+	return ""
 }
 
 // createOrUpdateConfigMap creates or updates a ConfigMap
@@ -494,7 +566,16 @@ func (r *ContractVersionReconciler) createOrUpdateConfigMap(ctx context.Context,
 
 // SetupWithManager sets up the controller with the Manager
 func (r *ContractVersionReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	// Initialize the Kubernetes clientset
+	config := mgr.GetConfig()
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		return err
+	}
+	r.Clientset = clientset
+
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&kontractdeployerv1alpha1.ContractVersion{}).
+		Owns(&batchv1.Job{}).
 		Complete(r)
 }
