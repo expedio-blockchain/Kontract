@@ -61,8 +61,11 @@ func (r *RPCProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	var rpcProvider kontractdeployerv1alpha1.RPCProvider
 	if err := r.Get(ctx, req.NamespacedName, &rpcProvider); err != nil {
 		log.Error(err, "unable to fetch RPCProvider")
+		r.Recorder.Event(&rpcProvider, corev1.EventTypeWarning, "FetchFailed", "Unable to fetch RPCProvider")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
+
+	log.Info("Successfully fetched RPCProvider", "RPCProvider.Name", rpcProvider.Name)
 
 	// Perform reconciliation logic if needed
 	// (You can leave this part empty or perform some reconciliation logic if required)
@@ -108,6 +111,7 @@ func (r *RPCProviderReconciler) checkAllRPCProviders(ctx context.Context) {
 		if err := r.Get(ctx, secretName, &secret); err != nil {
 			log.Error(err, fmt.Sprintf("RPCProvider (%s) - unable to fetch Secret", rpcProvider.Name), "Secret", secretName)
 			r.updateStatus(ctx, &rpcProvider, false, "")
+			r.Recorder.Event(&rpcProvider, corev1.EventTypeWarning, "SecretFetchFailed", "Unable to fetch Secret for RPCProvider")
 			continue
 		}
 
@@ -197,6 +201,9 @@ func (r *RPCProviderReconciler) updateStatus(ctx context.Context, rpcProvider *k
 	rpcProvider.Status.APIEndpoint = apiEndpoint
 	if err := r.Status().Update(ctx, rpcProvider); err != nil {
 		log.FromContext(ctx).Error(err, fmt.Sprintf("RPCProvider (%s) - unable to update RPCProvider status", rpcProvider.Name))
+		r.Recorder.Event(rpcProvider, corev1.EventTypeWarning, "StatusUpdateFailed", "Failed to update RPCProvider status")
+	} else {
+		log.FromContext(ctx).Info("RPCProvider status updated successfully", "RPCProvider.Name", rpcProvider.Name)
 	}
 }
 
