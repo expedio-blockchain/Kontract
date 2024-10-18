@@ -112,6 +112,7 @@ func (r *ContractVersionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	walletSecret := &corev1.Secret{}
 	if err := r.Get(ctx, types.NamespacedName{Name: wallet.Status.SecretRef, Namespace: req.Namespace}, walletSecret); err != nil {
 		logger.Error(err, "Failed to get Wallet Secret")
+		r.EventRecorder.Event(contractVersion, corev1.EventTypeWarning, "WalletSecretNotFound", "Failed to get Wallet Secret")
 		return ctrl.Result{}, err
 	}
 
