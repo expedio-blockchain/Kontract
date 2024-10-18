@@ -1,4 +1,4 @@
-module github.com/expedio-blockchain/KontractDeployer
+module github.com/expedio-blockchain/Kontract
 
 go 1.22.0
 

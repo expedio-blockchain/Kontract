@@ -30,7 +30,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	kontractdeployerv1alpha1 "github.com/expedio-blockchain/KontractDeployer/api/v1alpha1"
+	kontractdeployerv1alpha1 "github.com/expedio-blockchain/Kontract/api/v1alpha1"
 )
 
 // WalletReconciler reconciles a Wallet object
@@ -39,9 +39,9 @@ type WalletReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-// +kubebuilder:rbac:groups=kontractdeployer.expedio.xyz,resources=wallets,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=kontractdeployer.expedio.xyz,resources=wallets/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=kontractdeployer.expedio.xyz,resources=wallets/finalizers,verbs=update
+// +kubebuilder:rbac:groups=kontract.expedio.xyz,resources=wallets,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=kontract.expedio.xyz,resources=wallets/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=kontract.expedio.xyz,resources=wallets/finalizers,verbs=update
 // +kubebuilder:rbac:groups="",resources=secrets,verbs=create;update;get;list;watch
 
 // Reconcile is part of the main Kubernetes reconciliation loop which aims to

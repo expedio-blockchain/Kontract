@@ -6,105 +6,105 @@ domain: expedio.xyz
 layout:
 - go.kubebuilder.io/v4
 projectName: kubebuilder
-repo: github.com/expedio-blockchain/KontractDeployer
+repo: github.com/expedio-blockchain/Kontract
 resources:
 - api:
     crdVersion: v1
     namespaced: true
   controller: true
   domain: expedio.xyz
-  group: kontractdeployer
+  group: kontract
   kind: RPCProvider
-  path: github.com/expedio-blockchain/KontractDeployer/api/v1alpha1
+  path: github.com/expedio-blockchain/Kontract/api/v1alpha1
   version: v1alpha1
 - api:
     crdVersion: v1
     namespaced: true
   controller: true
   domain: expedio.xyz
-  group: kontractdeployer
+  group: kontract
   kind: BlockExplorer
-  path: github.com/expedio-blockchain/KontractDeployer/api/v1alpha1
+  path: github.com/expedio-blockchain/Kontract/api/v1alpha1
   version: v1alpha1
 - api:
     crdVersion: v1
     namespaced: true
   controller: true
   domain: expedio.xyz
-  group: kontractdeployer
+  group: kontract
   kind: Network
-  path: github.com/expedio-blockchain/KontractDeployer/api/v1alpha1
+  path: github.com/expedio-blockchain/Kontract/api/v1alpha1
   version: v1alpha1
 - api:
     crdVersion: v1
     namespaced: true
   controller: true
   domain: expedio.xyz
-  group: kontractdeployer
+  group: kontract
   kind: Wallet
-  path: github.com/expedio-blockchain/KontractDeployer/api/v1alpha1
+  path: github.com/expedio-blockchain/Kontract/api/v1alpha1
   version: v1alpha1
 - api:
     crdVersion: v1
     namespaced: true
   controller: true
   domain: expedio.xyz
-  group: kontractdeployer
+  group: kontract
   kind: Contract
-  path: github.com/expedio-blockchain/KontractDeployer/api/v1alpha1
+  path: github.com/expedio-blockchain/Kontract/api/v1alpha1
   version: v1alpha1
 - api:
     crdVersion: v1
     namespaced: true
   controller: true
   domain: expedio.xyz
-  group: kontractdeployer
+  group: kontract
   kind: ContractProxy
-  path: github.com/expedio-blockchain/KontractDeployer/api/v1alpha1
+  path: github.com/expedio-blockchain/Kontract/api/v1alpha1
   version: v1alpha1
 - api:
     crdVersion: v1
     namespaced: true
   controller: true
   domain: expedio.xyz
-  group: kontractdeployer
+  group: kontract
   kind: ProxyAdmin
-  path: github.com/expedio-blockchain/KontractDeployer/api/v1alpha1
+  path: github.com/expedio-blockchain/Kontract/api/v1alpha1
   version: v1alpha1
 - api:
     crdVersion: v1
     namespaced: true
   controller: true
   domain: expedio.xyz
-  group: kontractdeployer
+  group: kontract
   kind: Action
-  path: github.com/expedio-blockchain/KontractDeployer/api/v1alpha1
+  path: github.com/expedio-blockchain/Kontract/api/v1alpha1
   version: v1alpha1
 - api:
     crdVersion: v1
     namespaced: true
   controller: true
   domain: expedio.xyz
-  group: kontractdeployer
+  group: kontract
   kind: EventHook
-  path: github.com/expedio-blockchain/KontractDeployer/api/v1alpha1
+  path: github.com/expedio-blockchain/Kontract/api/v1alpha1
   version: v1alpha1
 - api:
     crdVersion: v1
     namespaced: true
   controller: true
   domain: expedio.xyz
-  group: kontractdeployer
+  group: kontract
   kind: GasStrategy
-  path: github.com/expedio-blockchain/KontractDeployer/api/v1alpha1
+  path: github.com/expedio-blockchain/Kontract/api/v1alpha1
   version: v1alpha1
 - api:
     crdVersion: v1
     namespaced: true
   controller: true
   domain: expedio.xyz
-  group: kontractdeployer
+  group: kontract
   kind: ContractVersion
-  path: github.com/expedio-blockchain/KontractDeployer/api/v1alpha1
+  path: github.com/expedio-blockchain/Kontract/api/v1alpha1
   version: v1alpha1
 version: "3"

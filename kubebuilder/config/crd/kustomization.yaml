@@ -2,17 +2,17 @@
 # since it depends on service name and namespace that are out of this kustomize package.
 # It should be run by config/default
 resources:
-- bases/kontractdeployer.expedio.xyz_rpcproviders.yaml
-- bases/kontractdeployer.expedio.xyz_blockexplorers.yaml
-- bases/kontractdeployer.expedio.xyz_networks.yaml
-- bases/kontractdeployer.expedio.xyz_wallets.yaml
-- bases/kontractdeployer.expedio.xyz_contracts.yaml
-- bases/kontractdeployer.expedio.xyz_contractproxies.yaml
-- bases/kontractdeployer.expedio.xyz_proxyadmins.yaml
-- bases/kontractdeployer.expedio.xyz_actions.yaml
-- bases/kontractdeployer.expedio.xyz_eventhooks.yaml
-- bases/kontractdeployer.expedio.xyz_gasstrategies.yaml
-- bases/kontractdeployer.expedio.xyz_contractversions.yaml
+- bases/kontract.expedio.xyz_rpcproviders.yaml
+- bases/kontract.expedio.xyz_blockexplorers.yaml
+- bases/kontract.expedio.xyz_networks.yaml
+- bases/kontract.expedio.xyz_wallets.yaml
+- bases/kontract.expedio.xyz_contracts.yaml
+- bases/kontract.expedio.xyz_contractproxies.yaml
+- bases/kontract.expedio.xyz_proxyadmins.yaml
+- bases/kontract.expedio.xyz_actions.yaml
+- bases/kontract.expedio.xyz_eventhooks.yaml
+- bases/kontract.expedio.xyz_gasstrategies.yaml
+- bases/kontract.expedio.xyz_contractversions.yaml
 # +kubebuilder:scaffold:crdkustomizeresource
 
 patches:
