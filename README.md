@@ -143,7 +143,7 @@ The deployment logs can be observed in the deployment job pod.
 kubectl logs job/contract-deploy-anvil-contract-anvil-version-1
 ```
 
-````bash
+```bash
 2024-10-18 18:59:02 - Init Params:
 ========================================
 2024-10-18 18:59:02 - Deploying the contract AnvilContract...
@@ -365,4 +365,7 @@ spec:
 ## Conclusion
 
 The Kontract operator provides a robust and flexible solution for managing blockchain resources and deploying smart contracts within a Kubernetes environment. By following this guide, you can quickly get started with deploying and managing your blockchain applications, and explore advanced features for more complex use cases.
-````
+
+```
+
+```
