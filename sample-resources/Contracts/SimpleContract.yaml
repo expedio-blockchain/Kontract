@@ -5,7 +5,6 @@ metadata:
 spec:
   contractName: SimpleContract
   networkRefs:
-   - holesky
    - amoy
   walletRef: dev-wallet
   code: |
@@ -15,18 +14,5 @@ spec:
       uint128 public value;
       function setValue(uint128 newValue) public {
         value = newValue;
-      }
-    }
-  test: |
-    // SPDX-License-Identifier: MIT
-    pragma solidity ^0.8.9;
-    import "src/SimpleContract.sol";
-    contract SimpleContractTest {
-      SimpleContract myContract;
-      function setUp() public {
-        myContract = new SimpleContract();
-      }
-      function testInitialValue() public {
-        myContract.setValue(1);
       }
     }

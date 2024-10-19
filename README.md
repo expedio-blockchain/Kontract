@@ -38,7 +38,7 @@ Kontract is a Kubernetes operator designed to simplify the deployment and manage
 
 ## Getting Started Guide
 
-### Simple Local Deployment with Anvil
+### Local Deployment with Anvil
 
 To quickly get started with Kontract, you can deploy a simple contract locally using Anvil. When using anvil local network, Kontract operator will automatically create the dependent resources like RPCProvider, Network and Wallet for you.
 
@@ -147,201 +147,122 @@ Transaction hash: 0x4a9c19d735998d2f752c396b05831ef3af4246786d122dda49d8f8389757
 ========================================
 ```
 
-## Advanced Documentation
+### Remote Blockchain Deployment
 
-### Setting Up Basic Resources
+To deploy a smart contract on a remote blockchain network, you need to set up several resources. Here's a step-by-step guide to help you get started.
 
-Below are examples of how to create a wallet, RPC provider, block explorer, network, and a simple contract.
+#### Initial Setup Resources
 
-#### Wallet
+1. **Wallet**: Represents an EOA wallet on the blockchain network (you can either create a new wallet or import an existing one).
 
-```yaml
-apiVersion: kontract.expedio.xyz/v1alpha1
-kind: Wallet
-metadata:
-  name: my-wallet
-spec:
-  walletType: EOA
-  networkRef: ethereum-mainnet
+   ```yaml
+   apiVersion: kontract.expedio.xyz/v1alpha1
+   kind: Wallet
+   metadata:
+     name: dev-wallet
+   spec:
+     walletType: EOA
+     networkRef: ethereum-mainnet
+   ```
+
+2. **RPCProvider**: Provides the endpoint to interact with the blockchain network. You need to obtain an API key from RPC api service such as Infura, Alchemy, etc.
+
+   ```yaml
+   ---
+   apiVersion: kontract.expedio.xyz/v1alpha1
+   kind: RPCProvider
+   metadata:
+     name: infura-amoy
+   spec:
+     providerName: Infura
+     secretRef:
+       name: infura-amoy-api-secret
+       tokenKey: key
+       urlKey: endpoint
+   ---
+   apiVersion: v1
+   kind: Secret
+   metadata:
+     name: infura-amoy-api-secret
+   stringData:
+     endpoint: https://polygon-amoy.infura.io/v3/
+     key: 39f79****************4de4b
+   ```
+
+3. **BlockExplorer**: Used to verify the contract on the exteral blockexplorer. You need to obtain an API key from the blockexplorer service such as, etherscan, polygonscan, etc.
+
+   ```yaml
+   apiVersion: kontract.expedio.xyz/v1alpha1
+   kind: BlockExplorer
+   metadata:
+     name: polygonscan-block-explorer
+   spec:
+     explorerName: polygonscan
+     secretRef:
+       name: polygonscan-api-secret
+       tokenKey: key
+       urlKey: endpoint
+   ```
+
+   ```yaml
+   apiVersion: v1
+   kind: Secret
+   metadata:
+     name: polygonscan-api-secret
+   stringData:
+     endpoint: https://api-amoy.polygonscan.com/api
+     key: JPQV****************15A9
+   ```
+
+4. **Network**: Defines the blockchain network where the contract will be deployed. It references the RPCProvider and BlockExplorer.
+
+   ```yaml
+   apiVersion: kontract.expedio.xyz/v1alpha1
+   kind: Network
+   metadata:
+     name: amoy
+   spec:
+     networkName: amoy-testnet
+     chainID: 18000
+     rpcProviderRef:
+       name: infura-amoy
+     blockExplorerRef:
+       name: polygonscan-block-explorer
+   ```
+
+5. **Contract**: Represents the smart contract to be deployed. It includes the contract code and references the network and wallet.
+
+   ```yaml
+   apiVersion: kontract.expedio.xyz/v1alpha1
+   kind: Contract
+   metadata:
+     name: simple-contract
+   spec:
+     contractName: SimpleContract
+     networkRefs:
+       - amoy
+     walletRef: dev-wallet
+     code: |
+       // SPDX-License-Identifier: MIT
+       pragma solidity ^0.8.9;
+       contract SimpleContract {
+         uint128 public value;
+         function setValue(uint128 newValue) public {
+           value = newValue;
+         }
+       }
+   ```
+
+#### Deploying the Contract
+
+Once you have defined your resources, apply the YAML files to your Kubernetes cluster:
+
+```bash
+kubectl apply -f sample-resources/Wallets/wallet.yaml
+kubectl apply -f sample-resources/RPCProvider/InfuraAmoy.yaml
+kubectl apply -f sample-resources/BlockExplorer/polygonscan.yaml
+kubectl apply -f sample-resources/Networks/amoy.yaml
+kubectl apply -f sample-resources/Contracts/SimpleContract.yaml
 ```
 
-#### RPCProvider
-
-```yaml
-apiVersion: kontract.expedio.xyz/v1alpha1
-kind: RPCProvider
-metadata:
-  name: infura-mainnet
-spec:
-  providerName: Infura
-  secretRef:
-    name: infura-mainnet-api-secret
-    tokenKey: key
-    urlKey: endpoint
-```
-
-#### BlockExplorer
-
-```yaml
-apiVersion: kontract.expedio.xyz/v1alpha1
-kind: BlockExplorer
-metadata:
-  name: etherscan
-spec:
-  explorerName: Etherscan
-  secretRef:
-    name: etherscan-api-secret
-    tokenKey: key
-    urlKey: endpoint
-```
-
-#### Network
-
-```yaml
-apiVersion: kontract.expedio.xyz/v1alpha1
-kind: Network
-metadata:
-  name: ethereum-mainnet
-spec:
-  networkName: Ethereum Mainnet
-  chainID: 1
-  rpcProviderRef:
-    name: infura-mainnet
-  blockExplorerRef:
-    name: etherscan
-```
-
-#### Simple Contract
-
-```yaml
-apiVersion: kontract.expedio.xyz/v1alpha1
-kind: Contract
-metadata:
-  name: simple-contract
-spec:
-  contractName: SimpleContract
-  networkRefs:
-    - ethereum-mainnet
-  walletRef: my-wallet
-  code: |
-    // SPDX-License-Identifier: MIT
-    pragma solidity ^0.8.9;
-    contract SimpleContract {
-      uint128 public value;
-      function setValue(uint128 newValue) public {
-        value = newValue;
-      }
-    }
-```
-
-### Exploring Specific Features
-
-#### Wallet Import
-
-```yaml
-apiVersion: kontract.expedio.xyz/v1alpha1
-kind: Wallet
-metadata:
-  name: imported-wallet
-spec:
-  walletType: EOA
-  networkRef: ethereum-mainnet
-  importFrom:
-    secretRef: wallet-secret
-```
-
-#### Contract with External and Local Modules
-
-```yaml
-apiVersion: kontract.expedio.xyz/v1alpha1
-kind: Contract
-metadata:
-  name: complex-contract
-spec:
-  contractName: BlockchainStocks
-  networkRefs:
-    - holesky
-  walletRef: dev-wallet
-  externalModules:
-    - "OpenZeppelin/openzeppelin-contracts@v4.8.3"
-  localModules:
-    - name: dividend
-```
-
-#### Script Contract Deployment
-
-```yaml
-apiVersion: kontract.expedio.xyz/v1alpha1
-kind: Contract
-metadata:
-  name: script-contract
-spec:
-  contractName: ScriptContract
-  networkRefs:
-    - amoy
-  walletRef: dev-wallet
-  script: |
-    // SPDX-License-Identifier: MIT
-    pragma solidity ^0.8.0;
-    import "forge-std/Script.sol";
-    import "../src/ScriptContract.sol";
-    contract DeploymentScript is Script {
-      function run() external {
-        vm.startBroadcast();
-        ScriptContract myContract = new ScriptContract();
-        console.log("Contract deployed at:", address(myContract));
-        vm.stopBroadcast();
-      }
-    }
-```
-
-#### ConfigMap Contract Code Resource
-
-```yaml
-apiVersion: kontract.expedio.xyz/v1alpha1
-kind: Contract
-metadata:
-  name: configmap-based-contract
-spec:
-  contractName: ConfigMapBasedContract
-  networkRefs:
-    - holesky
-  walletRef: dev-wallet
-  codeRef:
-    name: contract-code-configmap
-    key: code
-```
-
-#### Custom Foundry Config Contract
-
-```yaml
-apiVersion: kontract.expedio.xyz/v1alpha1
-kind: Contract
-metadata:
-  name: foundry-config-contract
-spec:
-  contractName: FoundryConfigContract
-  networkRefs:
-    - holesky
-  walletRef: dev-wallet
-  foundryConfig: |
-    [rpc_endpoints]
-    mainnet = "https://eth.llamarpc.com"
-    [profile.default]
-    src = "src"
-    out = "out"
-    libs = ["lib"]
-    ffi = true
-    fs_permissions = [{ access = "read-write", path = ".forge-snapshots/"}]
-    solc_version = "0.8.26"
-    evm_version = "cancun"
-    eth_rpc_url = "https://eth.llamarpc.com"
-```
-
-## Conclusion
-
-The Kontract operator provides a robust and flexible solution for managing blockchain resources and deploying smart contracts within a Kubernetes environment. By following this guide, you can quickly get started with deploying and managing your blockchain applications, and explore advanced features for more complex use cases.
-
-```
-
-```
+This will trigger the Kontract operator to deploy your smart contract on the specified remote blockchain network.
