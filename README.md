@@ -2,6 +2,9 @@
 
 Kontract is a Kubernetes operator designed to simplify the deployment and management of blockchain resources. It leverages Kubernetes' powerful API and integration capabilities to provide a production-ready deployment method for smart contracts and related blockchain components.
 
+Kontract Dev Channel: [@KontractDev](https://t.me/+qA4EYGaHVL44MzI0)  
+Kontract Support Channel: [@KontractSupport](https://t.me/+EV-Qmwxfp2M0NWJk)
+
 ![kontract-high-resolution-logo-transparent](https://github.com/user-attachments/assets/77ee4547-0c98-4b25-ace2-6670773cdb5d)
 
 ## Table of Contents
