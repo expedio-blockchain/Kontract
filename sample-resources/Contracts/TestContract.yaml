@@ -16,3 +16,16 @@ spec:
         value = newValue;
       }
     }
+  test: |
+    // SPDX-License-Identifier: MIT
+    pragma solidity ^0.8.9;
+    import "src/SimpleContract.sol";
+    contract SimpleContractTest {
+      SimpleContract myContract;
+      function setUp() public {
+        myContract = new SimpleContract();
+      }
+      function testInitialValue() public {
+        myContract.setValue(1);
+      }
+    }

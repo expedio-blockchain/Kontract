@@ -16,16 +16,3 @@ spec:
         value = newValue;
       }
     }
-  test: |
-    // SPDX-License-Identifier: MIT
-    pragma solidity ^0.8.9;
-    import "src/AnvilContract.sol";
-    contract AnvilContractTest {
-      AnvilContract myContract;
-      function setUp() public {
-        myContract = new AnvilContract();
-      }
-      function testInitialValue() public {
-        myContract.setValue(1);
-      }
-    }

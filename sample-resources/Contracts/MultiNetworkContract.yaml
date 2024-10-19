@@ -5,7 +5,9 @@ metadata:
 spec:
   contractName: SimpleContract
   networkRefs:
+   - holesky
    - amoy
+   - sepolia
   walletRef: dev-wallet
   code: |
     // SPDX-License-Identifier: MIT
