@@ -4,6 +4,27 @@ Kontract is a Kubernetes operator designed to simplify the deployment and manage
 
 ![kontract-high-resolution-logo-transparent](https://github.com/user-attachments/assets/77ee4547-0c98-4b25-ace2-6670773cdb5d)
 
+## Table of Contents
+
+- [Capabilities](#capabilities)
+- [Installation Guide](#installation-guide)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+- [Getting Started Guide](#getting-started-guide)
+  - [Local Deployment with Anvil](#local-deployment-with-anvil)
+  - [Deploying the Contract](#deploying-the-contract)
+  - [Observe the Contract Deployment](#observe-the-contract-deployment)
+  - [Remote Blockchain Deployment](#remote-blockchain-deployment)
+- [Advanced Features Guide](#advanced-features-guide)
+  - [Wallet Import](#wallet-import)
+  - [Adding Tests](#adding-tests)
+  - [Script Deployment](#script-deployment)
+  - [Multi-Network Deployment](#multi-network-deployment)
+  - [Deployment with Custom Foundry Configuration](#deployment-with-custom-foundry-configuration)
+  - [Deployment with Local and External Modules Import](#deployment-with-local-and-external-modules-import)
+  - [Deployment with ConfigMap Code](#deployment-with-configmap-code)
+  - [Initialization Parameters](#initialization-parameters)
+
 ## Capabilities
 
 - **Smart Contract Deployment**: Automate the deployment of smart contracts on various blockchain networks.
