@@ -116,19 +116,6 @@ spec:
     }
   contractName: AnvilContract
   networkRef: anvil
-  test: |
-    // SPDX-License-Identifier: MIT
-    pragma solidity ^0.8.9;
-    import "src/AnvilContract.sol";
-    contract AnvilContractTest {
-      AnvilContract myContract;
-      function setUp() public {
-        myContract = new AnvilContract();
-      }
-      function testInitialValue() public {
-        myContract.setValue(1);
-      }
-    }
   walletRef: anvil-wallet
 status:
   contractAddress: 0x5FbDB2315678afecb367f032d93F642f64180aa3
@@ -147,17 +134,6 @@ kubectl logs job/contract-deploy-anvil-contract-anvil-version-1
 2024-10-18 18:59:02 - Init Params:
 ========================================
 2024-10-18 18:59:02 - Deploying the contract AnvilContract...
-========================================
-2024-10-18 18:59:02 - Running tests...
-Compiling 2 files with Solc 0.8.27
-Solc 0.8.27 finished in 17.43ms
-Compiler run successful!
-
-Ran 1 test for test/AnvilContract.t.sol:AnvilContractTest
-[PASS] testInitialValue() (gas: 27531)
-Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 2.26ms (306.50µs CPU time)
-
-Ran 1 test suite in 5.17ms (2.26ms CPU time): 1 tests passed, 0 failed, 0 skipped (1 total tests)
 ========================================
 2024-10-18 19:00:06 - forge create src/AnvilContract.sol:AnvilContract --rpc-url http://anvil-service.default.svc.cluster.local:8545 --private-key ************
 No files changed, compilation skipped

@@ -1,0 +1,31 @@
+apiVersion: kontract.expedio.xyz/v1alpha1
+kind: Contract
+metadata:
+  name: simple-contract
+spec:
+  contractName: SimpleContract
+  networkRefs:
+   - holesky
+  walletRef: dev-wallet
+  code: |
+    // SPDX-License-Identifier: MIT
+    pragma solidity ^0.8.9;
+    contract SimpleContract {
+      uint128 public value;
+      function setValue(uint128 newValue) public {
+        value = newValue;
+      }
+    }
+  test: |
+    // SPDX-License-Identifier: MIT
+    pragma solidity ^0.8.9;
+    import "src/SimpleContract.sol";
+    contract SimpleContractTest {
+      SimpleContract myContract;
+      function setUp() public {
+        myContract = new SimpleContract();
+      }
+      function testInitialValue() public {
+        myContract.setValue(1);
+      }
+    }

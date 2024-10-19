@@ -1,16 +1,16 @@
 apiVersion: kontract.expedio.xyz/v1alpha1
 kind: Contract
 metadata:
-  name: anvil-contract
+  name: simple-contract
 spec:
-  contractName: AnvilContract
+  contractName: SimpleContract
   networkRefs:
-   - anvil
-  walletRef: anvil-wallet
+   - holesky
+  walletRef: dev-wallet
   code: |
     // SPDX-License-Identifier: MIT
     pragma solidity ^0.8.9;
-    contract AnvilContract {
+    contract SimpleContract {
       uint128 public value;
       function setValue(uint128 newValue) public {
         value = newValue;
