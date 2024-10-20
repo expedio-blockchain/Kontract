@@ -10,16 +10,11 @@ author:
   email: ronmegini@expedio.xyz
 
 # Theme settings
-theme: your-theme-name
+theme: jekyll-theme-architect
 
 # Build settings
 markdown: kramdown
 highlighter: rouge
-
-# Plugins
-plugins:
-  - jekyll-feed
-  - jekyll-seo-tag
 
 social_links:
   github: https://github.com/ronmegini
