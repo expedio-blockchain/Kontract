@@ -9,3 +9,15 @@
     display: block;
     margin: 0 auto; // Center the image horizontally
   }
+
+.button {
+padding: 8px 16px;
+color: #fff;
+background-color: #0088cc; /* Telegram's brand color */
+text-decoration: none;
+border-radius: 3px;
+}
+
+.button:hover {
+    background-color: #0077b3; /* Slightly darker shade for hover effect */
+}
