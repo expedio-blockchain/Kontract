@@ -1,6 +1,6 @@
 # Site settings
 title: Kontract
-description: Kontract is a Kubernetes operator for smart contract deployment
+description: Kubernetes operator for smart contract deployment
 baseurl: "/"
 url: "https://kontract.expedio.xyz"
 
