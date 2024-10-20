@@ -1,4 +1,4 @@
-# Kontract Operator
+![kontract-high-resolution-logo-transparent](https://github.com/user-attachments/assets/77ee4547-0c98-4b25-ace2-6670773cdb5d)
 
 Welcome to the official site for the Kontract Operator, a Kubernetes operator designed to simplify the deployment and management of blockchain resources. Leverage Kubernetes' powerful API and integration capabilities to deploy smart contracts and related blockchain components efficiently.
 
