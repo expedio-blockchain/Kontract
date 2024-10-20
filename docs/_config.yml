@@ -1,0 +1,26 @@
+# Site settings
+title: Kontract
+description: Kontract is a Kubernetes operator for smart contract deployment
+baseurl: "/"
+url: "https://kontract.expedio.xyz"
+
+# Author settings
+author:
+  name: Ron Megini
+  email: ronmegini@expedio.xyz
+
+# Theme settings
+theme: your-theme-name
+
+# Build settings
+markdown: kramdown
+highlighter: rouge
+
+# Plugins
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+
+social_links:
+  github: https://github.com/ronmegini
+  linkedin: https://www.linkedin.com/in/ronmegini/
