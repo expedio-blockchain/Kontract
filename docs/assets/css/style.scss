@@ -23,3 +23,10 @@ h2 {
         white-space: normal; // Allow text to wrap on smaller screens
     }
 }
+
+.telegram-icon {
+    width: 16px; // Adjust the size as needed
+    height: auto;
+    vertical-align: middle; // Aligns the icon with the text
+    margin-right: 5px; // Adds some space between the icon and the text
+}
