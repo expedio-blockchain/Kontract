@@ -1,0 +1,32 @@
+---
+---
+
+@import 'jekyll-theme-architect';
+
+.header-image {
+    max-width: 80%;
+    height: auto;
+    display: block;
+    margin: 0 auto; // Center the image horizontally
+    transform: translateX(-100px); // Move the image 100px to the left
+
+    @media (max-width: 768px) { // Adjust the max-width as needed for your mobile breakpoint
+        transform: translateX(0); // Reset the transform on smaller screens
+    }
+}
+
+h2 {
+    font-size: 1em;
+    white-space: nowrap; // Prevents the text from wrapping to a new line
+
+    @media (max-width: 768px) { // Adjust the max-width as needed for your mobile breakpoint
+        white-space: normal; // Allow text to wrap on smaller screens
+    }
+}
+
+.telegram-icon {
+    width: 16px; // Adjust the size as needed
+    height: auto;
+    vertical-align: middle; // Aligns the icon with the text
+    margin-right: 5px; // Adds some space between the icon and the text
+}
