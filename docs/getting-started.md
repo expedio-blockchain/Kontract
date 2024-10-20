@@ -1,5 +1,8 @@
 ## Getting Started Guide
 
+Let's get start with simple (but powerfull!) deployment setups.
+This guide will cover two deployment scenarios: First is local deployment on local testnet (Anvil), and second is remote deployment on a public testnet (Amoy).
+
 ### Local Deployment with Anvil
 
 To quickly get started with Kontract, you can deploy a simple contract locally using Anvil. When using anvil local network, Kontract operator will automatically create the dependent resources like RPCProvider, Network and Wallet for you.

@@ -1,4 +1,6 @@
-Welcome to the official site for the Kontract Operator, a Kubernetes operator designed to simplify the deployment and management of blockchain resources. Leverage Kubernetes' powerful API and integration capabilities to deploy smart contracts and related blockchain components efficiently.
+**Welcome to the official Kontract website!**
+
+Kontract is a Kubernetes operator built to simplify the deployment and management of blockchain resources. By leveraging Kubernetes' powerful API and integration capabilities, it offers a production-ready solution for deploying smart contracts and related blockchain components. Designed to streamline complex deployment processes, **Kontract lets you focus on the value of your smart contracts rather than the intricacies of deployment**.
 
 ## Features
 
@@ -14,5 +16,3 @@ Welcome to the official site for the Kontract Operator, a Kubernetes operator de
 - [Installation Guide](installation.md)
 - [Getting Started Guide](getting-started.md)
 - [Advanced Features Guide](advanced-features.md)
-
-For more detailed information, check out our [whitepaper](whitepaper.md).

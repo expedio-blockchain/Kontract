@@ -1,5 +1,7 @@
 ## Advanced Features Guide
 
+In this section, you'll find examples of specific use cases to better adjust Kontract to your unique requirements.
+
 ### Wallet Import
 
 You can import an existing wallet using a Kubernetes secret. This is useful for deploying contracts with a pre-existing account.
@@ -56,7 +58,7 @@ spec:
 
 ### Script Deployment
 
-You can use scripts to automate complex deployment processes. This is useful for setting up contracts with specific initialization logic.
+Automate complex deployment processes using scripts. This is useful for setting up contracts with specific initialization logic.
 
 ```yaml
 apiVersion: kontract.expedio.xyz/v1alpha1
@@ -94,7 +96,7 @@ spec:
 
 ### Multi-Network Deployment
 
-Deploy your contract to multiple networks simultaneously by specifying multiple network references.
+Deploy your contract to multiple networks at once by specifying multiple network references.
 
 ```yaml
 apiVersion: kontract.expedio.xyz/v1alpha1
@@ -212,7 +214,7 @@ data:
 
 ### Deployment with ConfigMap Code
 
-Store your contract code in a Kubernetes ConfigMap for easy management and updates.
+Manage and update your contract code easily by storing it in a Kubernetes ConfigMap.
 
 ```yaml
 apiVersion: kontract.expedio.xyz/v1alpha1
