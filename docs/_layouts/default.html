@@ -22,9 +22,6 @@
       <div class="inner">
         <img src="assets/images/kontract-transparent.png" alt="{{ site.title | default: site.github.repository_name }}" class="header-image">
         <h2>{{ site.description | default: site.github.project_tagline }}</h2>
-        {% if site.github.is_project_page %}
-          <a href="{{ site.github.repository_url }}" class="button"><small>View project on</small> GitHub</a>
-        {% endif %}
         {% if site.github.is_user_page %}
           <a href="{{ site.github.owner_url }}" class="button"><small>Follow me on</small> GitHub</a>
         {% endif %}
@@ -38,26 +35,9 @@
         </section>
 
         <aside id="sidebar">
-          {% if site.show_downloads %}
-            <a href="{{ site.github.zip_url }}" class="button">
-              <small>Download</small>
-              .zip file
-            </a>
-            <a href="{{ site.github.tar_url }}" class="button">
-              <small>Download</small>
-              .tar.gz file
-            </a>
-          {% endif %}
-
-          {% if site.github.is_project_page %}
-            <p class="repo-owner"><a href="{{ site.github.repository_url }}">{{ site.github.repository_name }}</a> is maintained by <a href="{{ site.github.owner_url }}">{{ site.github.owner_name }}</a>.</p>
-          {% endif %}
-
-          <p>Join us on Telegram!</p>
-          <ul>
-            <li><a href="https://t.me/+qA4EYGaHVL44MzI0">Support Channel</a></li>
-            <li><a href="https://t.me/+EV-Qmwxfp2M0NWJk">Dev Channel</a></li>
-          </ul>
+          <a href="{{ site.github.repository_url }}" class="button"><small>View project on</small> GitHub</a>
+          <a href="https://t.me/+qA4EYGaHVL44MzI0" class="button"><small>Support Channel on</small> Telegram</a>
+          <a href="https://t.me/+EV-Qmwxfp2M0NWJk" class="button"><small>Dev Channel on</small> Telegram</a>
         </aside>
       </div>
     </div>
