@@ -1,7 +1,7 @@
 Kontract is an open-source project that brings smart contract management capabilities to Kubernetes.
 As a Kubernetes operator, Kontract simplifies complex deployment processes into a few simple YAML manifests. By utilizing Kubernetes' powerful API and seamless integration features, Kontract provides a production-ready solution for efficiently deploying smart contracts and blockchain components.
 
-        **"Kontract lets you focus on the value of your smart contracts rather than the complexities of deployment."**
+> "Kontract lets you focus on the value of your smart contracts rather than the complexities of deployment."\*\*
 
 ## Features
 
