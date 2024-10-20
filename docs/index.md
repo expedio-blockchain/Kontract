@@ -13,6 +13,6 @@ Kontract is a Kubernetes operator built to simplify the deployment and managemen
 
 ## Get Started
 
-- [Installation Guide](installation.md)
-- [Getting Started Guide](getting-started.md)
-- [Advanced Features Guide](advanced-features.md)
+- [Installation](installation.md)
+- [Getting Started](getting-started.md)
+- [Advanced Features](advanced-features.md)
