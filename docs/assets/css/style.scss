@@ -8,7 +8,11 @@
     height: auto;
     display: block;
     margin: 0 auto; // Center the image horizontally
-    transform: translateX(-100px); // Move the image 10px to the left
+    transform: translateX(-100px); // Move the image 100px to the left
+
+    @media (max-width: 768px) { // Adjust the max-width as needed for your mobile breakpoint
+        transform: translateX(0); // Reset the transform on smaller screens
+    }
 }
 
 h2 {
