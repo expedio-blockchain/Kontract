@@ -33,10 +33,13 @@
 
     <div id="content-wrapper">
       <div class="inner clearfix">
+        {% if page.url == "/" %}
+          <p>Kontract lets you focus on the value of your smart contracts rather than the complexities of deployment.</p>
+          <!-- Embed a YouTube video -->
+          <iframe width="560" height="315" src="https://www.youtube.com/embed/your-video-id" frameborder="0" allowfullscreen></iframe>
+        {% endif %}
         <section id="main-content">
           {{ content }}
-          <!-- Embed a YouTube video -->
-          <iframe width="560" height="315" src="https://youtu.be/sRpCXqGMAQU" frameborder="0" allowfullscreen></iframe>
         </section>
 
         <aside id="sidebar">
