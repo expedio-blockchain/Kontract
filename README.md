@@ -5,11 +5,12 @@ Kontract is a Kubernetes operator designed to simplify the deployment and manage
 Kontract Dev Channel: [@KontractDev](https://t.me/+qA4EYGaHVL44MzI0)  
 Kontract Support Channel: [@KontractSupport](https://t.me/+EV-Qmwxfp2M0NWJk)
 
-[![Kontract Demo Video](https://github.com/user-attachments/assets/91a1974c-bef9-4273-b1c6-b5d52e9118e2)](https://www.youtube.com/watch?v=sRpCXqGMAQU)
+![kontract-high-resolution-logo-transparent](https://github.com/user-attachments/assets/77ee4547-0c98-4b25-ace2-6670773cdb5d)
 
 ## Table of Contents
 
 - [Capabilities](#capabilities)
+- [Demo](#demo)
 - [Installation Guide](#installation-guide)
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
@@ -36,6 +37,10 @@ Kontract Support Channel: [@KontractSupport](https://t.me/+EV-Qmwxfp2M0NWJk)
 - **Multi-Network Deployment**: Deploy your smart contracts to multiple blockchain networks at the same time.
 - **Local Testing**: Use Kontract to test your smart contracts locally on your Kubernetes cluster.
 - **Endless Integrations**: Seamless integration with the Kubernetes ecosystem including CI/CD pipelines, secret management, and more.
+
+## Demo
+
+[![Kontract Demo Video](https://github.com/user-attachments/assets/91a1974c-bef9-4273-b1c6-b5d52e9118e2)](https://www.youtube.com/watch?v=sRpCXqGMAQU)
 
 ## Installation Guide
 
