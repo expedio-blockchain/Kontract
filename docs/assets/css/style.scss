@@ -36,3 +36,9 @@ h2 {
     justify-content: center; // Centers the content horizontally
     margin: 20px 0; // Optional: Adds some vertical spacing
 }
+
+.video-container iframe {
+    width: 100%; // Make the video take up the full width of its container
+    max-width: 800px; // Set a maximum width for larger screens
+    height: auto; // Maintain aspect ratio
+}
