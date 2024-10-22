@@ -5,7 +5,7 @@ Kontract is a Kubernetes operator designed to simplify the deployment and manage
 Kontract Dev Channel: [@KontractDev](https://t.me/+qA4EYGaHVL44MzI0)  
 Kontract Support Channel: [@KontractSupport](https://t.me/+EV-Qmwxfp2M0NWJk)
 
-[![Kontract Demo Video](https://img.youtube.com/vi/sRpCXqGMAQU/0.jpg)](https://www.youtube.com/watch?v=sRpCXqGMAQU)
+[![Kontract Demo Video](https://github.com/user-attachments/assets/91a1974c-bef9-4273-b1c6-b5d52e9118e2)](https://www.youtube.com/watch?v=sRpCXqGMAQU)
 
 ## Table of Contents
 
