@@ -20,7 +20,9 @@
   <body>
     <header>
       <div class="inner">
-        <img src="assets/images/kontract-transparent.png" alt="{{ site.title | default: site.github.repository_name }}" class="header-image">
+        <a href="{{ site.baseurl }}/">
+          <img src="assets/images/kontract-transparent.png" alt="{{ site.title | default: site.github.repository_name }}" class="header-image">
+        </a>
         <h2>{{ site.description | default: site.github.project_tagline }}</h2>
         {% if site.github.is_project_page %}
           <a href="{{ site.github.repository_url }}" class="button"><small>View project on</small> GitHub</a>
@@ -34,6 +36,13 @@
     <div id="content-wrapper">
       <div class="inner clearfix">
         <section id="main-content">
+          {% if page.url == "/" %}
+            <p>Kontract is an open-source project that brings smart contract management capabilities to Kubernetes. As a Kubernetes operator, Kontract simplifies complex deployment processes into a few simple YAML manifests. By utilizing Kubernetes powerful API and endless integrations, Kontract provides a production-ready solution for efficient deployment of smart contracts.</p>
+            <blockquote>Kontract lets you focus on the value of your smart contracts rather than the complexities of deployment.</blockquote>
+            <div class="video-container">
+              <iframe src="https://www.youtube.com/embed/sRpCXqGMAQU" frameborder="0" allowfullscreen></iframe>
+            </div>
+          {% endif %}
           {{ content }}
         </section>
 

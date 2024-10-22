@@ -7,26 +7,44 @@
     max-width: 80%;
     height: auto;
     display: block;
-    margin: 0 auto; // Center the image horizontally
-    transform: translateX(-100px); // Move the image 100px to the left
+    margin: 0 auto;
+    transform: translateX(-100px);
 
-    @media (max-width: 768px) { // Adjust the max-width as needed for your mobile breakpoint
-        transform: translateX(0); // Reset the transform on smaller screens
+    @media (max-width: 768px) {
+        transform: translateX(0);
     }
 }
 
 h2 {
     font-size: 1em;
-    white-space: nowrap; // Prevents the text from wrapping to a new line
+    white-space: nowrap;
 
-    @media (max-width: 768px) { // Adjust the max-width as needed for your mobile breakpoint
-        white-space: normal; // Allow text to wrap on smaller screens
+    @media (max-width: 768px) {
+        white-space: normal;
     }
 }
 
 .telegram-icon {
-    width: 16px; // Adjust the size as needed
+    width: 16px;
     height: auto;
-    vertical-align: middle; // Aligns the icon with the text
-    margin-right: 5px; // Adds some space between the icon and the text
+    vertical-align: middle;
+    margin-right: 5px;
+}
+
+.video-container {
+    position: relative;
+    width: 100%;
+    max-width: 800px;
+    margin: 20px auto;
+    overflow: hidden;
+    padding-top: 62.5%;
+}
+
+.video-container iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
 }
