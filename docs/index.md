@@ -1,5 +1,3 @@
-> Kontract lets you focus on the value of your smart contracts rather than the complexities of deployment.
-
 ## Features
 
 - **Smart Contract Deployment**: Automate deployment across all Ethereum-compatible blockchain networks.
