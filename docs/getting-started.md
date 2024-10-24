@@ -167,9 +167,7 @@ To deploy a smart contract on a remote blockchain network, you need to set up se
        name: polygonscan-api-secret
        tokenKey: key
        urlKey: endpoint
-   ```
-
-   ```yaml
+   ---
    apiVersion: v1
    kind: Secret
    metadata:
