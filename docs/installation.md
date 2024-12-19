@@ -25,3 +25,7 @@
    ```
 
    This command installs the Kontract operator in the `kontract` namespace.
+
+## What's Next?
+
+- [Getting Started](getting-started.md)

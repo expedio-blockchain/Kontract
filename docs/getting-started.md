@@ -229,3 +229,7 @@ kubectl apply -f sample-resources/Contracts/SimpleContract.yaml
 ```
 
 This will trigger the Kontract operator to deploy your smart contract on the specified remote blockchain network.
+
+## What's Next?
+
+- [Advanced Features](advanced-features.md)

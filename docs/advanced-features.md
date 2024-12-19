@@ -267,3 +267,10 @@ spec:
         // Contract code here
     }
 ```
+
+## What's Next?
+
+Join the community!
+
+- [Official Telegram Channel](https://t.me/kontract_support)
+- [Feature Requests & Contribute Code](https://github.com/expedio-blockchain/Kontract/issues)

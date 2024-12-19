@@ -47,13 +47,6 @@
         </section>
 
         <aside id="sidebar">
-          <nav>
-            <ul>
-              <li><a href="{{ '/installation' | relative_url }}">Installation</a></li>
-              <li><a href="{{ '/getting-started' | relative_url }}">Getting Started</a></li>
-              <li><a href="{{ '/advanced-features' | relative_url }}">Advanced Features</a></li>
-            </ul>
-          </nav>
           {% if site.show_downloads %}
             <a href="{{ site.github.zip_url }}" class="button">
               <small>Download</small>
@@ -68,19 +61,28 @@
           {% if site.github.is_project_page %}
             <p class="repo-owner"><a href="{{ site.github.repository_url }}">{{ site.github.repository_name }}</a> is maintained by <a href="{{ site.github.owner_url }}">{{ site.github.owner_name }}</a>.</p>
           {% endif %}
+          
+          <p>Pages</p>
+          <nav>
+            <ul>
+              <li><a href="{{ '/installation' | relative_url }}">Installation</a></li>
+              <li><a href="{{ '/getting-started' | relative_url }}">Getting Started</a></li>
+              <li><a href="{{ '/advanced-features' | relative_url }}">Advanced Features</a></li>
+            </ul>
+          </nav>
 
-          <p>Join us on Telegram!</p>
+          <p>Join the community!</p>
           <div>
             <a href="https://t.me/kontract_support">
-              <img src="{{ '/assets/images/telegram.webp' | relative_url }}" alt="Telegram Icon" class="telegram-icon">
-              Support Channel
+              <img src="{{ '/assets/images/telegram.webp' | relative_url }}" alt="Telegram Icon" class="community-icon">
+              Official Telegram Channel
             </a>
           </div>
         
           <div>
-            <a href="https://t.me/kontract_dev">
-              <img src="{{ '/assets/images/telegram.webp' | relative_url }}" alt="Telegram Icon" class="telegram-icon">
-              Dev Channel
+            <a href="https://github.com/expedio-blockchain/Kontract/issues">
+              <img src="{{ '/assets/images/github.png' | relative_url }}" alt="Github Icon" class="community-icon">
+              Feature Requests & Contribute Code
             </a>
           </div>
         </aside>
