@@ -47,6 +47,13 @@
         </section>
 
         <aside id="sidebar">
+          <nav>
+            <ul>
+              <li><a href="{{ '/installation' | relative_url }}">Installation</a></li>
+              <li><a href="{{ '/getting-started' | relative_url }}">Getting Started</a></li>
+              <li><a href="{{ '/advanced-features' | relative_url }}">Advanced Features</a></li>
+            </ul>
+          </nav>
           {% if site.show_downloads %}
             <a href="{{ site.github.zip_url }}" class="button">
               <small>Download</small>
